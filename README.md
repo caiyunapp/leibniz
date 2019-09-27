@@ -16,7 +16,7 @@ pip install leibniz
 How to use
 -----------
 
-As an example we solve an very simple advection problem, a box-shaped material transported by constant steady wind.
+As an example we solve an very simple advection problem, a box-shaped material transported by a constant steady wind.
 
 ![moving box](https://raw.githubusercontent.com/caiyunapp/leibniz/master/advection_3d.gif)
 
@@ -47,7 +47,7 @@ fld = binary((lbnz.x - 8) * (9 - lbnz.x)) * \
       binary((lbnz.y - 3) * (4 - lbnz.y)) * \
       binary((lbnz.z - 3) * (4 - lbnz.z))
 
-# construct a steady and constant wind
+# construct a constant steady wind
 wind = lbnz.one, lbnz.zero, lbnz.zero
 
 # transport value by wind
