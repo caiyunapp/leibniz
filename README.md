@@ -16,7 +16,7 @@ pip install leibniz
 How to use
 -----------
 
-As an example we solve an very simple advection problem, a box-shaped material transported by a constant steady wind.
+As an example we solve a very simple advection problem, a box-shaped material transported by a constant steady wind.
 
 ![moving box](https://raw.githubusercontent.com/caiyunapp/leibniz/master/advection_3d.gif)
 
