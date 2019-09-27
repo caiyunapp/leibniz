@@ -27,6 +27,7 @@ setuptools.setup(
     install_requires=[
         'cached_property',
         'torch',
+        'numpy',
     ],
     test_suite='nose.collector',
     tests_require=['nose'],

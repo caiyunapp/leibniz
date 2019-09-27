@@ -17,11 +17,18 @@ def sub(x, y):
     return x1 - y1, x2 - y2, x3 - y3
 
 
-def multiply(x, y):
+def mult(x, y):
     x1, x2, x3 = x
     y1, y2, y3 = y
 
     return x1 * y1, x2 * y2, x3 * y3
+
+
+def div(x, y):
+    x1, x2, x3 = x
+    y1, y2, y3 = y
+
+    return x1 / y1, x2 / y2, x3 / y3
 
 
 def dot(x, y):
