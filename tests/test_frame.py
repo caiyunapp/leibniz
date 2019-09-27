@@ -38,8 +38,9 @@ class TestFrame(unittest.TestCase):
         thx = thx.cpu().numpy()
         thy = thy.cpu().numpy()
         thz = thz.cpu().numpy()
-        self.assertAlmostEqual(1, np.max(thx * thx + thy * thy + thz * thz))
-        self.assertAlmostEqual(1, np.min(thx * thx + thy * thy + thz * thz))
+        val = thx * thx + thy * thy + thz * thz
+        self.assertAlmostEqual(1, np.max(val))
+        self.assertAlmostEqual(1, np.min(val))
 
         rx, ry, rz = lbnz.thetaphir.r
         rx = rx.cpu().numpy()

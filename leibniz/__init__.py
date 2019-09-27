@@ -61,6 +61,8 @@ def set_device(ix):
         'W': _grid_.W,
         'H': _grid_.H,
         'boundary': lambda: _grid_.boundary(),
+        'mk_zero': _grid_.mk_zero,
+        'mk_one': _grid_.mk_one,
         'zero': _grid_.zero,
         'one': _grid_.one,
         'random': lambda: _grid_.random(),
@@ -119,8 +121,9 @@ def use(mname, **kwargs):
     if ',' not in mname:
         target = load(mname)
         pname = target._name_
+        glbs = globals()
         pval = target._clazz_(_grid_)
-        globals().update({
+        glbs.update({
             pname: pval,
         })
     else:

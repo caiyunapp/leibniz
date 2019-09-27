@@ -23,7 +23,7 @@ class TestDiff(unittest.TestCase):
         ))
 
     def tearDown(self):
-        pass
+        lbnz.clear()
 
     def magnitude(self, var):
         # return magnitude of variable to test accuracy

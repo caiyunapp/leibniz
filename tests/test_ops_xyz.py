@@ -95,7 +95,7 @@ class TestOpsXYZ(unittest.TestCase):
             (lbnz.x ** 2 + lbnz.y ** 2)
         test = lbnz.div(fld)
 
-        self.assertAlmostEqualWithMagExceptBoundary(expected, test, 3)
+        self.assertAlmostEqualWithMagExceptBoundary(expected, test, 2)
 
     def test_div2(self):
         # F = (-y, x * y, z);

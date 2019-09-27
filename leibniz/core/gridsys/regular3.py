@@ -33,27 +33,33 @@ class RegularGrid:
     def set_device(self, ix):
         self.default_device = ix
 
-    @cached_property
-    def zero(self) -> Tensor:
+    def mk_zero(self) -> Tensor:
         return cast(np.zeros(self.shape), device=self.default_device)
 
     @cached_property
-    def one(self) -> Tensor:
+    def zero(self) -> Tensor:
+        return self.mk_zero()
+
+    def mk_one(self) -> Tensor:
         return cast(np.ones(self.shape), device=self.default_device)
 
+    @cached_property
+    def one(self) -> Tensor:
+        return self.mk_one()
+
     def boundary(self) -> Tensor:
-        foreward = self.zero
-        backward = self.zero
+        foreward = self.mk_zero()
+        backward = self.mk_zero()
         backward[-1, :, :] = 1
         foreward[0, :, :] = 1
 
-        top = self.zero
-        bottom = self.zero
+        top = self.mk_zero()
+        bottom = self.mk_zero()
         top[:, :, -1] = 1
         bottom[:, :, 0] = 1
 
-        left = self.zero
-        right = self.zero
+        left = self.mk_zero()
+        right = self.mk_zero()
         right[:, -1, :] = 1
         left[:, 0, :] = 1
 

@@ -3,13 +3,14 @@
 import torch as th
 import leibniz as lbnz
 
+from cached_property import cached_property
 from torch import Tensor
 from typing import Tuple
 
 
 class Elements:
     def __init__(self, **kwargs):
-        self.default_device = 0
+        self.default_device = -1
 
         if lbnz._grid_.basis == 'theta,phi,r':
             self.dL1 = lbnz.r * th.cos(lbnz.phi) * lbnz.dtheta
@@ -44,14 +45,14 @@ class Elements:
         self.dVol = self.dVol.cuda(device=ix)
         self.default_device = ix
 
-    @property
+    @cached_property
     def dL(self) -> Tuple[Tensor, Tensor, Tensor]:
         return self.dL1, self.dL2, self.dL3
 
-    @property
+    @cached_property
     def dS(self) -> Tuple[Tensor, Tensor, Tensor]:
         return self.dS1, self.dS2, self.dS3
 
-    @property
+    @cached_property
     def dV(self) -> Tensor:
         return self.dVol

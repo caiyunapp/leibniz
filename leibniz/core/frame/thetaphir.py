@@ -3,6 +3,7 @@
 import torch as th
 import leibniz as lbnz
 
+from cached_property import cached_property
 from torch import Tensor
 from typing import Tuple
 
@@ -40,15 +41,15 @@ class ThetaPhiRFrame:
         self.rz = self.rz.cuda(device=ix)
         self.default_device = ix
 
-    @property
+    @cached_property
     def phi(self) -> Tuple[Tensor, Tensor, Tensor]:
         return self.phx, self.phy, self.phz
 
-    @property
+    @cached_property
     def theta(self) -> Tuple[Tensor, Tensor, Tensor]:
         return self.thx, self.thy, self.thz
 
-    @property
+    @cached_property
     def r(self) -> Tuple[Tensor, Tensor, Tensor]:
         return self.rx, self.ry, self.rz
 
