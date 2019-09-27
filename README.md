@@ -1,5 +1,7 @@
 # Leibniz
 
+[![Build Status](https://api.travis-ci.com/caiyunapp/leibniz.svg?branch=master)](http://travis-ci.com/caiyunapp/leibniz) 
+
 Leibniz is a python package which provide facilities to express learnable differential equations with PyTorch
 
 
