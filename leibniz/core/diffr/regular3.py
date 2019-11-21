@@ -4,7 +4,6 @@ import logging
 import numpy as np
 import leibniz as lbnz
 
-from torch.autograd import Variable
 from torch.nn.functional import conv3d, pad
 from leibniz import cast
 
