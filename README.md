@@ -25,7 +25,7 @@ As an example we solve a very simple advection problem, a box-shaped material tr
 import torch as th
 import leibniz as lbnz
 
-from leibniz.core.gridsys.regular3 import RegularGrid
+from leibniz.core3d.gridsys.regular3 import RegularGrid
 from leibniz.diffeq import odeint as odeint
 
 

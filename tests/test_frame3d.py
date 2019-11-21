@@ -5,8 +5,8 @@ import unittest
 import numpy as np
 import leibniz as lbnz
 
-from leibniz.core.vector.v3 import box
-from leibniz.core.gridsys.regular3 import RegularGrid
+from leibniz.core3d.vec3 import box
+from leibniz.core3d.gridsys.regular3 import RegularGrid
 
 
 class TestFrame(unittest.TestCase):
@@ -65,7 +65,7 @@ class TestFrame(unittest.TestCase):
         self.assertAlmostEqual(1, np.max(d))
 
     def test_basis_diff(self):
-        from leibniz.core.basis.theta_phi_r import transform
+        from leibniz.core3d.basis.theta_phi_r import transform
 
         x, y, z = transform(lbnz.theta + 0.0001, lbnz.phi, lbnz.r)
         thx, thy, thz = lbnz.normalize((x - lbnz.x, y - lbnz.y, z - lbnz.z))

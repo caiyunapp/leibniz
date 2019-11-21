@@ -104,7 +104,7 @@ def test_cube_rotation():
 
 
 if __name__ == '__main__':
-    from leibniz.core.gridsys.regular3 import RegularGrid
+    from leibniz.core3d.gridsys.regular3 import RegularGrid
 
     lbnz.bind(RegularGrid(
         basis='x,y,z',

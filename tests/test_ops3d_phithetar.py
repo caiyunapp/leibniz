@@ -8,7 +8,7 @@ import torch as th
 import leibniz as lbnz
 
 from torch import Tensor
-from leibniz.core.gridsys.regular3 import RegularGrid
+from leibniz.core3d.gridsys.regular3 import RegularGrid
 
 
 class TestOpsPhiThetaR(unittest.TestCase):

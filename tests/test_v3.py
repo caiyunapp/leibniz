@@ -6,7 +6,7 @@ import numpy as np
 
 import leibniz as lbnz
 
-from leibniz.core.vector.v3 import norm, cross, sub
+from leibniz.core3d.vec3 import norm, cross, sub
 
 
 class TestV3(unittest.TestCase):

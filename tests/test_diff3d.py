@@ -7,8 +7,8 @@ import torch as th
 
 import leibniz as lbnz
 
-from leibniz.core.diffr.regular3 import central, sobel3, sobel5, sharr3, centralx, centraly, centralz
-from leibniz.core.gridsys.regular3 import RegularGrid
+from leibniz.core3d.diffr.regular3 import central, sobel3, sobel5, sharr3, centralx, centraly, centralz
+from leibniz.core3d.gridsys.regular3 import RegularGrid
 
 
 class TestDiff(unittest.TestCase):

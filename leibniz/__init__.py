@@ -108,9 +108,9 @@ def load(mname):
     import importlib
 
     if ',' in mname:
-        return importlib.import_module('leibniz.core.basis.%s' % mname.replace(',', '_'))
+        return importlib.import_module('leibniz.core3d.basis.%s' % mname.replace(',', '_'))
     else:
-        return importlib.import_module('leibniz.core.frame.%s' % mname)
+        return importlib.import_module('leibniz.core3d.frame.%s' % mname)
 
 
 def use(mname, **kwargs):
@@ -167,11 +167,11 @@ def bind(grid, **kwargs):
 
     logger.info('device_to: %d', device_to)
 
-    import leibniz.core.vector.v3 as v3
-    import leibniz.core.diffr.regular3 as d
+    import leibniz.core3d.vec3 as v3
+    import leibniz.core3d.diffr.regular3 as d
 
-    from leibniz.core.element import Elements
-    from leibniz.core.ops import LocalOps
+    from leibniz.core3d.element import Elements
+    from leibniz.core3d.ops import LocalOps
 
     global _grid_, _frame_, _element_, _ops_, _v3_, diff, upwindm, upwindp
 

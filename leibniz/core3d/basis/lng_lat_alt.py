@@ -2,7 +2,7 @@
 
 import numpy as np
 
-import leibniz.core.basis.theta_phi_r as delegate
+import leibniz.core3d.basis.theta_phi_r as delegate
 
 
 _name_ = 'lng,lat,alt'

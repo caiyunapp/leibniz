@@ -62,7 +62,7 @@ def draw_animation(sequence, x, y, gif_name='test.gif', frames=51, mode='3d'):
 
 
 if __name__ == '__main__':
-    from leibniz.core.gridsys.regular3 import RegularGrid
+    from leibniz.core3d.gridsys.regular3 import RegularGrid
 
     lbnz.bind(RegularGrid(
         basis='x,y,z',
