@@ -6,7 +6,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-from unet.base import conv3x3
+from leibniz.unet.base import conv3x3
 
 
 logger = logging.getLogger('hyperbolic')
