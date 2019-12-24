@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from unet.base import UNet, Transform
-from unet.residual import Basic
+from leibniz.unet.base import UNet, Transform
+from leibniz.unet.residual import Basic
 
 
 def unet(in_channels, num_filters, out_channels, kernel_size=4):
