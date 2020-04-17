@@ -25,6 +25,8 @@ class RegularGrid:
         self.default_device = -1
 
     def get_device(self):
+        if self.default_device == -1:
+            return 'cpu'
         return self.default_device
 
     def set_device(self, ix):

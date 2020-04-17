@@ -7,9 +7,10 @@ matplotlib.use('Agg')
 import torch as th
 from leibniz.diffeq import odeint as odeint
 
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.animation import FuncAnimation, writers
+#import matplotlib.pyplot as plt
+#from mpl_toolkits.mplot3d import Axes3D
+#from matplotlib.animation import FuncAnimation
+
 
 def binary(tensor):
     return th.where(tensor > lbnz.zero, lbnz.one, lbnz.zero)
@@ -84,6 +85,6 @@ if __name__ == '__main__':
         return - lbnz.upwind(wind, clouds)
 
     pred = odeint(derivitive, fld, th.arange(0, 7, 1 / 100), method='rk4')
-    sequence = [pred[i].squeeze()[..., lbnz.H // 2] for i in range(700) if i % 10 == 0]
-    draw_animation(sequence, lbnz.x.squeeze()[..., 0], lbnz.y.squeeze()[..., 0], 'simple_advection(upwind4).gif',
-                   mode='3d', frames=len(sequence))
+    #sequence = [pred[i].squeeze()[..., lbnz.H // 2] for i in range(700) if i % 10 == 0]
+    #draw_animation(sequence, lbnz.x.squeeze()[..., 0], lbnz.y.squeeze()[..., 0], 'simple_advection(upwind4).gif',
+    #               mode='3d', frames=len(sequence))
