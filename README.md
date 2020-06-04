@@ -58,6 +58,14 @@ def derivitive(t, clouds):
 pred = odeint(derivitive, fld, th.arange(0, 7, 1 / 100), method='rk4')
 ```
 
+How to release
+---------------
+
+```bash
+python3 setup.py sdist bdist_wheel
+python3 -m twine upload --repository pypi dist/*
+```
+
 Contributors
 ------------
 
