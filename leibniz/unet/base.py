@@ -11,14 +11,14 @@ logger.setLevel(logging.INFO)
 
 
 class Enconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=256):
+    def __init__(self, in_channels, out_channels, size=(256,256), conv=nn.Conv2d):
 
         super(Enconv, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
 
-        self.scale = nn.Upsample(size=size, mode='bilinear')
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
+        self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
+        self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
         x = self.scale(x).contiguous()
@@ -28,14 +28,14 @@ class Enconv(nn.Module):
 
 
 class Deconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=256):
+    def __init__(self, in_channels, out_channels, size=(256,256), conv=nn.Conv2d):
 
         super(Deconv, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
 
-        self.scale = nn.Upsample(size=size, mode='bilinear')
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
+        self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
+        self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
         x = self.scale(x).contiguous()
@@ -120,7 +120,7 @@ class Block(nn.Module):
 
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, block=None, relu=None, layers=4, ratio=2,
-                 vblks=None, hblks=None, scales=None, factors=None, size=256):
+                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256)):
         super().__init__()
 
         extension = block.extension
@@ -146,6 +146,18 @@ class UNet(nn.Module):
         logger.info('factors: [%s]', ', '.join(map(str, factors[0:4])))
         logger.info('---------------------------------------')
 
+        size = min(*spatial)
+        dim = len(spatial)
+        self.dim = dim
+        if dim == 1:
+            Conv = nn.Conv1d
+        elif dim == 2:
+            Conv = nn.Conv2d
+        elif dim == 3:
+            Conv = nn.Conv3d
+        else:
+            raise ValueError('dim %d is not supported!' % dim)
+
         self.exceeded = np.any(np.cumprod(scales) * size < 1) or np.any((in_channels * ratio * np.cumprod(factors)) < lrd)
         if not self.exceeded:
             self.layers = layers
@@ -158,8 +170,8 @@ class UNet(nn.Module):
 
             ex = extension
             c0 = int(ex * num_filters // ex * ex)
-            self.iconv = nn.Conv2d(in_channels, c0, kernel_size=3, padding=1, groups=1)
-            self.oconv = nn.Conv2d(c0, out_channels, kernel_size=3, padding=1, bias=False, groups=1)
+            self.iconv = Conv(in_channels, c0, kernel_size=3, padding=1, groups=1)
+            self.oconv = Conv(c0, out_channels, kernel_size=3, padding=1, bias=False, groups=1)
             self.relu6 = nn.ReLU6()
 
             self.enconvs = nn.ModuleList()
@@ -168,26 +180,26 @@ class UNet(nn.Module):
             self.upforms = nn.ModuleList()
             self.deconvs = nn.ModuleList()
 
-            self.sizes = [int(size)]
+            self.spatial = [np.array(spatial, dtype=np.int)]
             self.channel_sizes = [c0]
             for ix in range(layers):
                 least_factor = ex
                 scale, factor = scales[ix], factors[ix]
-                self.sizes.append(int(self.sizes[ix] * scale))
+                self.spatial.append(int(self.spatial[ix] * scale))
                 self.channel_sizes.append(int(self.channel_sizes[ix] * factor // least_factor * least_factor))
 
                 ci, co = self.channel_sizes[ix], self.channel_sizes[ix + 1]
-                szi, szo = self.sizes[ix + 1], self.sizes[ix]
+                szi, szo = self.spatial[ix + 1], self.spatial[ix]
                 logger.info('%d - ci: %d, co: %d', ix, ci, co)
-                logger.info('%d - szi: %d, szo: %d', ix, szi, szo)
+                logger.info('%d - szi: [%s], szo: [%s]', ix, ', '.join(map(str, szi)), ', '.join(map(str, szo)))
 
-                self.exceeded = self.exceeded or ci < lrd or co < lrd or szi < 1 or szo < 1
+                self.exceeded = self.exceeded or ci < lrd or co < lrd or szi.min() < 1 or szo.min() < 1
                 if not self.exceeded:
                     try:
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu))
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
+                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu))
                     except Exception:
                         self.exceeded = True
