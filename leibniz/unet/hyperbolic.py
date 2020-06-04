@@ -1,16 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import logging
-
 import numpy as np
 import torch as th
 import torch.nn as nn
 
-from leibniz.unet.base import conv3x3
-
-
-logger = logging.getLogger('hyperbolic')
-logger.setLevel(logging.INFO)
+from leibniz.nn.conv import conv3x3
 
 
 class HyperBasic(nn.Module):
@@ -41,14 +35,6 @@ class HyperBasic(nn.Module):
         dy = self.relu(dy)
         dy = self.conv2(dy)
         y = y + dy
-
-        #if logger.level == logging.INFO:
-        #    xval = x.cpu().detach().numpy()
-        #    logger.info(f'x: {xval.min():0.8f}, {xval.max():0.8f}, {xval.mean():0.8f}')
-        #
-        #    theta = th.fmod(theta, 1.0)
-        #    tval = theta.cpu().detach().numpy()
-        #    logger.info(f'θ: {tval.min():0.8f}, {tval.max():0.8f}, {tval.mean():0.8f}')
 
         return y
 
@@ -85,13 +71,5 @@ class HyperBottleneck(nn.Module):
         dy = self.conv3(dy)
 
         y = y + dy * self.step
-
-        #if logger.level == logging.INFO:
-        #    xval = x.cpu().detach().numpy()
-        #    logger.info(f'x: {xval.min():0.8f}, {xval.max():0.8f}, {xval.mean():0.8f}')
-        #
-        #    theta = th.fmod(theta, 1.0)
-        #    tval = theta.cpu().detach().numpy()
-        #    logger.info(f'θ: {tval.min():0.8f}, {tval.max():0.8f}, {tval.mean():0.8f}')
 
         return y

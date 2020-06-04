@@ -3,7 +3,7 @@
 import torch as th
 import torch.nn as nn
 
-from leibniz.unet.base import conv3x3
+from leibniz.nn.conv import conv3x3
 
 
 class Basic(th.nn.Module):
