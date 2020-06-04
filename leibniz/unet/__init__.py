@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from leibniz.unet.base import UNet, Transform
+from leibniz.unet.base import UNet
 from leibniz.unet.residual import Basic
+from leibniz.nn.activation import Swish
 
 
-def unet(in_channels, num_filters, out_channels, kernel_size=4):
-    return UNet(in_channels, num_filters, out_channels, kernel_size=kernel_size, layers=0, block=None)
+def unet(in_channels, out_channels, spatial=(256, 256)):
+    return UNet(in_channels, out_channels, block=None, relu=Swish, layers=4, ratio=2,
+                 vblks=[0, 0, 0, 0], hblks=[0, 0, 0, 0],
+                 scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=spatial)
 
 
-def resunet(in_channels, num_filters, out_channels, kernel_size=4, layers=8, block=Basic):
-    return UNet(in_channels, num_filters, out_channels, kernel_size=kernel_size, layers=layers, block=block)
+def resunet(in_channels, out_channels, spatial=(256, 256)):
+    return UNet(in_channels, out_channels, block=Basic, relu=Swish, layers=4, ratio=2,
+                 vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
+                 scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=spatial)
