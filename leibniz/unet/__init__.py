@@ -19,6 +19,6 @@ def unet8(in_channels, out_channels, spatial=(256, 256)):
 
 def resunet(in_channels, out_channels, block=Basic, relu=Swish(), layers=4, ratio=2,
                  vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
-                 scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=(256, 256)):
+                 scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=(256, 256), normalizor='batch'):
     return UNet(in_channels, out_channels, block=block, relu=relu, layers=layers, ratio=ratio,
-                 vblks=vblks, hblks=hblks, scales=scales, factors=factors, spatial=spatial)
+                 vblks=vblks, hblks=hblks, scales=scales, factors=factors, spatial=spatial, normalizor=normalizor)
