@@ -16,6 +16,7 @@ class Enconv(nn.Module):
         super(Enconv, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
+        self.size = size
 
         if len(size) == 1:
             self.scale = nn.Upsample(size=tuple(size), mode='linear')
@@ -39,6 +40,7 @@ class Deconv(nn.Module):
         super(Deconv, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
+        self.size = size
 
         if len(size) == 1:
             self.scale = nn.Upsample(size=tuple(size), mode='linear')
@@ -84,12 +86,10 @@ class Transform(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, transform, activation=True, batchnorm=True, instnorm=False, dropout=False, relu=None, dim=2):
+    def __init__(self, transform, activation=True, dropout=False, relu=None, dim=2, normalizor='batch'):
 
         super(Block, self).__init__()
         self.activation = activation
-        self.batchnorm = batchnorm
-        self.instnorm = instnorm
         self.dropout = dropout
         self.blocks = None
 
@@ -101,21 +101,23 @@ class Block(nn.Module):
             else:
                 self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
-        if self.batchnorm:
+        self.normalizor = None
+        if normalizor == 'batch':
             if dim == 1:
-                self.bn = nn.BatchNorm1d(transform.out_channels, affine=True)
+                self.normalizor = nn.BatchNorm1d(transform.out_channels, affine=True)
             elif dim == 2:
-                self.bn = nn.BatchNorm2d(transform.out_channels, affine=True)
+                self.normalizor = nn.BatchNorm2d(transform.out_channels, affine=True)
             elif dim == 3:
-                self.bn = nn.BatchNorm3d(transform.out_channels, affine=True)
-
-        if self.instnorm:
+                self.normalizor = nn.BatchNorm3d(transform.out_channels, affine=True)
+        elif normalizor == 'instance':
             if dim == 1:
-                self.norm = nn.InstanceNorm1d(transform.out_channels)
+                self.normalizor = nn.InstanceNorm1d(transform.out_channels)
             elif dim == 2:
-                self.norm = nn.InstanceNorm2d(transform.out_channels)
+                self.normalizor = nn.InstanceNorm2d(transform.out_channels)
             elif dim == 3:
-                self.norm = nn.InstanceNorm3d(transform.out_channels)
+                self.normalizor = nn.InstanceNorm3d(transform.out_channels)
+        elif normalizor == 'layer':
+            self.normalizor = nn.LayerNorm(tuple([transform.out_channels] + transform.size))
 
         if self.dropout:
             self.drop = nn.Dropout2d(p=0.5)
@@ -129,10 +131,8 @@ class Block(nn.Module):
 
         x = self.transform(x)
 
-        if self.batchnorm:
-            x = self.bn(x)
-        if self.instnorm:
-            x = self.norm(x)
+        if self.normalizor:
+            x = self.normalizor(x)
 
         if self.dropout:
             x = self.drop(x)
@@ -142,7 +142,7 @@ class Block(nn.Module):
 
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, block=None, relu=None, layers=4, ratio=2,
-                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256)):
+                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch'):
         super().__init__()
 
         extension = block.extension
@@ -225,10 +225,11 @@ class UNet(nn.Module):
                 self.exceeded = self.exceeded or ci < lrd or co < lrd or szi.min() < 1 or szo.min() < 1
                 if not self.exceeded:
                     try:
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu, dim=self.dim))
+                        dropout_flag = (layers - ix) * 3 < layers
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=Conv), activation=True, dropout=dropout_flag, relu=relu, dim=self.dim, normalizor=normalizor))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=Conv))
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=Conv))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu, dim=self.dim))
+                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=Conv), activation=True, dropout=False, relu=relu, dim=self.dim, normalizor=normalizor))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=Conv))
                     except Exception as e:
                         logger.exception(e)
