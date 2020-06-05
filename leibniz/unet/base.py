@@ -126,8 +126,27 @@ class UNet(nn.Module):
         extension = block.extension
         lrd = block.least_required_dim
 
-        ratio = np.exp2(ratio)
+        spatial = np.array(spatial, dtype=np.int)
+        dim = len(spatial)
+        self.dim = dim
+        if dim == 1:
+            Conv = nn.Conv1d
+        elif dim == 2:
+            Conv = nn.Conv2d
+        elif dim == 3:
+            Conv = nn.Conv3d
+        else:
+            raise ValueError('dim %d is not supported!' % dim)
+
         scales = np.array(scales)
+        if scales.shape[0] != layers:
+            raise ValueError('scales should have %d layers at dim 0!' % layers)
+        if len(scales.shape) == 1:
+            scales = scales.reshape([layers, 1])
+        if len(scales.shape) != 2:
+            raise ValueError('scales should have length 2 to be compatible with spatial dimensions!')
+
+        ratio = np.exp2(ratio)
         factors = np.array(factors + [0.0])
         scales = np.exp2(scales)
         factors = np.exp2(factors)
@@ -146,19 +165,7 @@ class UNet(nn.Module):
         logger.info('factors: [%s]', ', '.join(map(str, factors[0:4])))
         logger.info('---------------------------------------')
 
-        size = min(*spatial)
-        dim = len(spatial)
-        self.dim = dim
-        if dim == 1:
-            Conv = nn.Conv1d
-        elif dim == 2:
-            Conv = nn.Conv2d
-        elif dim == 3:
-            Conv = nn.Conv3d
-        else:
-            raise ValueError('dim %d is not supported!' % dim)
-
-        self.exceeded = np.any(np.cumprod(scales) * size < 1) or np.any((in_channels * ratio * np.cumprod(factors)) < lrd)
+        self.exceeded = np.any(np.cumprod(scales, axis=0) * spatial < 1) or np.any((in_channels * ratio * np.cumprod(factors)) < lrd)
         if not self.exceeded:
             self.layers = layers
             self.in_channels = in_channels
@@ -180,13 +187,13 @@ class UNet(nn.Module):
             self.upforms = nn.ModuleList()
             self.deconvs = nn.ModuleList()
 
-            self.spatial = [np.array(spatial, dtype=np.int)]
+            self.spatial = [spatial]
             self.channel_sizes = [c0]
             for ix in range(layers):
                 least_factor = ex
                 scale, factor = scales[ix], factors[ix]
-                self.spatial.append(int(self.spatial[ix] * scale))
-                self.channel_sizes.append(int(self.channel_sizes[ix] * factor // least_factor * least_factor))
+                self.spatial.append(np.array(self.spatial[ix] * scale, dtype=np.int))
+                self.channel_sizes.append(np.array(self.channel_sizes[ix] * factor // least_factor * least_factor, dtype=np.int))
 
                 ci, co = self.channel_sizes[ix], self.channel_sizes[ix + 1]
                 szi, szo = self.spatial[ix + 1], self.spatial[ix]

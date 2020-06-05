@@ -7,6 +7,9 @@ from leibniz.nn.conv import conv3x3
 
 
 class Basic(th.nn.Module):
+    extension = 1
+    least_required_dim = 1
+
     def __init__(self, dim, step):
         super(Basic, self).__init__()
 
@@ -29,6 +32,9 @@ class Basic(th.nn.Module):
 
 
 class Bottleneck(th.nn.Module):
+    extension = 1
+    least_required_dim = 4
+
     def __init__(self, dim, step):
         super(Bottleneck, self).__init__()
 
