@@ -208,8 +208,12 @@ class UNet(nn.Module):
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu))
                         self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu))
-                    except Exception:
+                    except Exception as e:
+                        logger.exception(e)
                         self.exceeded = True
+                else:
+                    logger.error('scales are exceeded!')
+                    raise ValueError('scales exceeded!')
 
     def forward(self, x):
         if self.exceeded:
