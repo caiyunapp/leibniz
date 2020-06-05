@@ -34,7 +34,13 @@ class Deconv(nn.Module):
         self.in_channels = in_channels
         self.out_channels = out_channels
 
-        self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
+        if len(size) == 1:
+            self.scale = nn.Upsample(size=tuple(size), mode='linear')
+        elif len(size) == 2:
+            self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
+        elif len(size) == 3:
+            self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
+
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
