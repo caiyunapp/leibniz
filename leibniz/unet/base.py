@@ -17,7 +17,13 @@ class Enconv(nn.Module):
         self.in_channels = in_channels
         self.out_channels = out_channels
 
-        self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
+        if len(size) == 1:
+            self.scale = nn.Upsample(size=tuple(size), mode='linear')
+        elif len(size) == 2:
+            self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
+        elif len(size) == 3:
+            self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
+
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
@@ -78,7 +84,7 @@ class Transform(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, transform, activation=True, batchnorm=True, instnorm=False, dropout=False, relu=None):
+    def __init__(self, transform, activation=True, batchnorm=True, instnorm=False, dropout=False, relu=None, dim=2):
 
         super(Block, self).__init__()
         self.activation = activation
@@ -96,10 +102,20 @@ class Block(nn.Module):
                 self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
 
         if self.batchnorm:
-            self.bn = nn.BatchNorm2d(transform.out_channels, affine=True)
+            if dim == 1:
+                self.bn = nn.BatchNorm1d(transform.out_channels, affine=True)
+            elif dim == 2:
+                self.bn = nn.BatchNorm2d(transform.out_channels, affine=True)
+            elif dim == 3:
+                self.bn = nn.BatchNorm3d(transform.out_channels, affine=True)
 
         if self.instnorm:
-            self.norm = nn.InstanceNorm2d(transform.out_channels)
+            if dim == 1:
+                self.norm = nn.InstanceNorm1d(transform.out_channels)
+            elif dim == 2:
+                self.norm = nn.InstanceNorm2d(transform.out_channels)
+            elif dim == 3:
+                self.norm = nn.InstanceNorm3d(transform.out_channels)
 
         if self.dropout:
             self.drop = nn.Dropout2d(p=0.5)
@@ -209,10 +225,10 @@ class UNet(nn.Module):
                 self.exceeded = self.exceeded or ci < lrd or co < lrd or szi.min() < 1 or szo.min() < 1
                 if not self.exceeded:
                     try:
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu, dim=self.dim))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=Conv))
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=Conv))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
+                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu, dim=self.dim))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=Conv))
                     except Exception as e:
                         logger.exception(e)
