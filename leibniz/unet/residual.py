@@ -3,20 +3,18 @@
 import torch as th
 import torch.nn as nn
 
-from leibniz.nn.conv import conv3x3
-
 
 class Basic(th.nn.Module):
     extension = 1
     least_required_dim = 1
 
-    def __init__(self, dim, step):
+    def __init__(self, dim, step, relu, conv):
         super(Basic, self).__init__()
 
         self.step = step
-        self.relu = nn.ReLU(inplace=True)
-        self.conv1 = conv3x3(dim, dim)
-        self.conv2 = conv3x3(dim, dim)
+        self.relu = relu
+        self.conv1 = conv(dim, dim, kernel_size=3, stride=1, padding=1, groups=1, bias=False, dilation=1)
+        self.conv2 = conv(dim, dim, kernel_size=3, stride=1, padding=1, groups=1, bias=False, dilation=1)
 
         nn.init.normal_(self.conv1.weight, 0.0, 0.04)
         nn.init.normal_(self.conv2.weight, 0.0, 0.04)
@@ -35,17 +33,18 @@ class Bottleneck(th.nn.Module):
     extension = 1
     least_required_dim = 4
 
-    def __init__(self, dim, step):
+    def __init__(self, dim, step, relu, conv):
         super(Bottleneck, self).__init__()
 
         self.step = step
-        self.relu = nn.ReLU(inplace=True)
-        self.conv1 = nn.Conv2d(dim, dim // 4, kernel_size=1, bias=False)
-        self.conv2 = nn.Conv2d(dim // 4, dim // 4, kernel_size=3, bias=False, padding=1)
-        self.conv3 = nn.Conv2d(dim // 4, dim, kernel_size=1, bias=False)
+        self.relu = relu
+        self.conv1 = conv(dim, dim // 4, kernel_size=1, bias=False)
+        self.conv2 = conv(dim // 4, dim // 4, kernel_size=3, bias=False, padding=1)
+        self.conv3 = conv(dim // 4, dim, kernel_size=1, bias=False)
 
         nn.init.normal_(self.conv1.weight, 0.0, 0.04)
         nn.init.normal_(self.conv2.weight, 0.0, 0.04)
+        nn.init.normal_(self.conv3.weight, 0.0, 0.04)
 
     def forward(self, x):
 

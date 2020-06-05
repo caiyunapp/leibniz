@@ -45,7 +45,7 @@ class Deconv(nn.Module):
 
 
 class Transform(nn.Module):
-    def __init__(self, in_channels, out_channels, nblks=0, block=None, relu=None):
+    def __init__(self, in_channels, out_channels, nblks=0, block=None, relu=None, conv=nn.Conv2d):
 
         super(Transform, self).__init__()
         self.in_channels = in_channels
@@ -58,9 +58,9 @@ class Transform(nn.Module):
         if nblks > 0 and block is not None:
             blocks = []
             for i in range(nblks - 1):
-                blocks.append(block(self.out_channels, step=1.0 / nblks, relu=relu))
+                blocks.append(block(self.out_channels, step=1.0 / nblks, relu=relu, conv=conv))
                 blocks.append(relu)
-            blocks.append(block(self.out_channels, step=1.0 / nblks, relu=relu))
+            blocks.append(block(self.out_channels, step=1.0 / nblks, relu=relu, conv=conv))
             self.blocks = nn.Sequential(*blocks)
 
     def forward(self, x):
@@ -204,10 +204,10 @@ class UNet(nn.Module):
                 if not self.exceeded:
                     try:
                         self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
-                        self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu))
-                        self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu))
+                        self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=Conv))
+                        self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=Conv))
                         self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=Conv), activation=True, batchnorm=False, instnorm=True, dropout=False, relu=relu))
-                        self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu))
+                        self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=Conv))
                     except Exception as e:
                         logger.exception(e)
                         self.exceeded = True
