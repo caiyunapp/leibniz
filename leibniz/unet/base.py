@@ -117,10 +117,15 @@ class Block(nn.Module):
             elif dim == 3:
                 self.normalizor = nn.InstanceNorm3d(transform.out_channels)
         elif normalizor == 'layer':
-            self.normalizor = nn.LayerNorm(tuple([transform.out_channels] + transform.size))
+            self.normalizor = nn.LayerNorm(tuple([transform.out_channels]) + tuple(transform.size))
 
         if self.dropout:
-            self.drop = nn.Dropout2d(p=0.5)
+            if dim == 1:
+                self.drop = nn.Dropout(p=0.5)
+            elif dim == 2:
+                self.drop = nn.Dropout2d(p=0.5)
+            elif dim == 3:
+                self.drop = nn.Dropout3d(p=0.5)
 
     def forward(self, *xs):
 
