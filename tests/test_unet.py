@@ -15,7 +15,11 @@ class TestUnet(unittest.TestCase):
         pass
 
     def test1D(self):
-        net = resunet(1, 1, spatial=(16,))
+        net = resunet(1, 1, spatial=(32,))
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='instance')
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='layer')
         net(th.rand(1, 1, 16))
 
     def test2D(self):
@@ -23,6 +27,10 @@ class TestUnet(unittest.TestCase):
         resunet(1, 1, spatial=(16, 32))
         resunet(1, 1, spatial=(32, 16))
         net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]])
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance')
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer')
         net(th.rand(1, 1, 32, 16))
 
     def test3D(self):
@@ -32,4 +40,8 @@ class TestUnet(unittest.TestCase):
         resunet(1, 1, spatial=(16, 16, 32))
         resunet(1, 1, spatial=(11, 16, 32))
         net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]])
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='instance')
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='layer')
         net(th.rand(1, 1, 4, 16, 32))
