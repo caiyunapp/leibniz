@@ -156,14 +156,8 @@ class UNet(nn.Module):
         spatial = np.array(spatial, dtype=np.int)
         dim = len(spatial)
         self.dim = dim
-        if dim == 1:
-            Conv = nn.Conv1d
-        elif dim == 2:
-            Conv = nn.Conv2d
-        elif dim == 3:
-            Conv = nn.Conv3d
-        else:
-            raise ValueError('dim %d is not supported!' % dim)
+        Conv = self.get_conv_for_prepare()
+        TConv = self.get_conv_for_transform()
 
         scales = np.array(scales)
         if scales.shape[0] != layers:
@@ -231,17 +225,39 @@ class UNet(nn.Module):
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=Conv), activation=True, dropout=dropout_flag, relu=relu, dim=self.dim, normalizor=normalizor))
-                        self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=Conv))
-                        self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=Conv))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=Conv), activation=True, dropout=False, relu=relu, dim=self.dim, normalizor=normalizor))
-                        self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=Conv))
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv), activation=True, dropout=dropout_flag, relu=relu, dim=self.dim, normalizor=normalizor))
+                        self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
+                        self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=TConv))
+                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv), activation=True, dropout=False, relu=relu, dim=self.dim, normalizor=normalizor))
+                        self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                     except Exception as e:
                         logger.exception(e)
                         self.exceeded = True
                 else:
                     logger.error('scales are exceeded!')
                     raise ValueError('scales exceeded!')
+
+    def get_conv_for_prepare(self):
+        if self.dim == 1:
+            conv = nn.Conv1d
+        elif self.dim == 2:
+            conv = nn.Conv2d
+        elif self.dim == 3:
+            conv = nn.Conv3d
+        else:
+            raise ValueError('dim %d is not supported!' % self.dim)
+        return conv
+
+    def get_conv_for_transform(self):
+        if self.dim == 1:
+            conv = nn.Conv1d
+        elif self.dim == 2:
+            conv = nn.Conv2d
+        elif self.dim == 3:
+            conv = nn.Conv3d
+        else:
+            raise ValueError('dim %d is not supported!' % self.dim)
+        return conv
 
     def forward(self, x):
         if self.exceeded:
