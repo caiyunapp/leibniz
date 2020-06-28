@@ -36,13 +36,14 @@ class Elements:
         return self.default_device
 
     def set_device(self, ix):
-        self.dL1 = self.dL1.cuda(device=ix)
-        self.dL2 = self.dL2.cuda(device=ix)
-        self.dL3 = self.dL3.cuda(device=ix)
-        self.dS1 = self.dS1.cuda(device=ix)
-        self.dS2 = self.dS2.cuda(device=ix)
-        self.dS3 = self.dS3.cuda(device=ix)
-        self.dVol = self.dVol.cuda(device=ix)
+        if ix >= 0:
+            self.dL1 = self.dL1.cuda(device=ix)
+            self.dL2 = self.dL2.cuda(device=ix)
+            self.dL3 = self.dL3.cuda(device=ix)
+            self.dS1 = self.dS1.cuda(device=ix)
+            self.dS2 = self.dS2.cuda(device=ix)
+            self.dS3 = self.dS3.cuda(device=ix)
+            self.dVol = self.dVol.cuda(device=ix)
         self.default_device = ix
 
     @cached_property
