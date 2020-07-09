@@ -28,8 +28,8 @@ class Enconv(nn.Module):
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
-        x = self.scale(x).contiguous()
         x = self.conv(x)
+        x = self.scale(x).contiguous()
 
         return x
 
@@ -52,8 +52,8 @@ class Deconv(nn.Module):
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
-        x = self.scale(x).contiguous()
         x = self.conv(x)
+        x = self.scale(x).contiguous()
 
         return x
 
