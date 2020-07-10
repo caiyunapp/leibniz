@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 
 
 class Enconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=(256,256), conv=nn.Conv2d):
+    def __init__(self, in_channels, out_channels, size=(256, 256), conv=nn.Conv2d):
 
         super(Enconv, self).__init__()
         self.in_channels = in_channels
@@ -28,8 +28,13 @@ class Enconv(nn.Module):
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
-        x = self.conv(x)
-        x = self.scale(x).contiguous()
+        ratio = (np.array(x.size()).prod()) / (np.array(self.size).prod())
+        if ratio < 1.0:
+            x = self.conv(x)
+            x = self.scale(x).contiguous()
+        else:
+            x = self.scale(x).contiguous()
+            x = self.conv(x)
 
         return x
 
@@ -52,8 +57,13 @@ class Deconv(nn.Module):
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
-        x = self.conv(x)
-        x = self.scale(x).contiguous()
+        ratio = (np.array(x.size()).prod()) / (np.array(self.size).prod())
+        if ratio < 1.0:
+            x = self.conv(x)
+            x = self.scale(x).contiguous()
+        else:
+            x = self.scale(x).contiguous()
+            x = self.conv(x)
 
         return x
 
