@@ -28,7 +28,7 @@ class Enconv(nn.Module):
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
-        ratio = (np.array(x.size())[-self.size:].prod()) / (np.array(self.size).prod())
+        ratio = (np.array(x.size())[-len(self.size):].prod()) / (np.array(self.size).prod())
         if ratio < 1.0:
             x = self.scale(x).contiguous()
             x = self.conv(x)
@@ -57,7 +57,7 @@ class Deconv(nn.Module):
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
-        ratio = (np.array(x.size())[-self.size:].prod()) / (np.array(self.size).prod())
+        ratio = (np.array(x.size())[-len(self.size):].prod()) / (np.array(self.size).prod())
         if ratio < 1.0:
             x = self.scale(x).contiguous()
             x = self.conv(x)
