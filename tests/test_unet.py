@@ -4,6 +4,8 @@ import unittest
 import torch as th
 
 from leibniz.unet import resunet
+from leibniz.unet.hyperbolic import HyperBasic
+from leibniz.unet.hyperbolic import HyperBottleneck
 
 
 class TestUnet(unittest.TestCase):
@@ -44,4 +46,46 @@ class TestUnet(unittest.TestCase):
         net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='instance')
         net(th.rand(1, 1, 4, 16, 32))
         net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='layer')
+        net(th.rand(1, 1, 4, 16, 32))
+
+    def testHyp1D(self):
+        net = resunet(1, 1, spatial=(32,), block=HyperBasic)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='instance', block=HyperBasic)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='layer', block=HyperBasic)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), block=HyperBottleneck)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='instance', block=HyperBottleneck)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='layer', block=HyperBottleneck)
+        net(th.rand(1, 1, 16))
+
+    def testHyp2D(self):
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=HyperBasic)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=HyperBasic)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=HyperBasic)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=HyperBottleneck)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=HyperBottleneck)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=HyperBottleneck)
+        net(th.rand(1, 1, 32, 16))
+
+    def testHyp3D(self):
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], block=HyperBasic)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='instance', block=HyperBasic)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='layer', block=HyperBasic)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], block=HyperBottleneck)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='instance', block=HyperBottleneck)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='layer', block=HyperBottleneck)
         net(th.rand(1, 1, 4, 16, 32))
