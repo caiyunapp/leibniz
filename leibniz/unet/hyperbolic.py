@@ -4,7 +4,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-from unet.senet import SELayer
+from leibniz.unet.senet import SELayer
 
 
 class HyperBasic(nn.Module):
