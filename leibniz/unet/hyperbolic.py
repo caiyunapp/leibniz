@@ -44,7 +44,7 @@ class HyperBasic(nn.Module):
         dy = self.conv1(ys)
         dy = self.relu(dy)
         dy = self.conv2(dy)
-        y = y + dy
+        y = y + dy * self.step
 
         return y
 
@@ -92,6 +92,6 @@ class HyperBottleneck(nn.Module):
         dy = self.relu(dy)
         dy = self.conv3(dy)
 
-        y = y + dy
+        y = y + dy * self.step
 
         return y
