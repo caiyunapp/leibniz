@@ -22,3 +22,12 @@ class Mish(th.nn.Module):
     def forward(self, x):
         return x * self.tanh(self.softplus(x))
 
+
+class CappingRelu(th.nn.Module):
+    def __init__(self):
+        super(CappingRelu, self).__init__()
+        self.leaky = nn.LeakyReLU(inplace=True)
+
+    def forward(self, x):
+        return th.clamp(self.leaky(x), max=10)
+

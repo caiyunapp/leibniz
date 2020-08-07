@@ -6,6 +6,8 @@ import torch as th
 from leibniz.unet import resunet
 from leibniz.unet.hyperbolic import HyperBasic
 from leibniz.unet.hyperbolic import HyperBottleneck
+from leibniz.unet.senet import SEBasicBlock
+from leibniz.unet.senet import SEBottleneck
 
 
 class TestUnet(unittest.TestCase):
@@ -88,4 +90,46 @@ class TestUnet(unittest.TestCase):
         net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='instance', block=HyperBottleneck)
         net(th.rand(1, 1, 4, 16, 32))
         net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='layer', block=HyperBottleneck)
+        net(th.rand(1, 1, 4, 16, 32))
+
+    def testSE1D(self):
+        net = resunet(1, 1, spatial=(32,), block=SEBasicBlock)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='instance', block=SEBasicBlock)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='layer', block=SEBasicBlock)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), block=SEBottleneck)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='instance', block=SEBottleneck)
+        net(th.rand(1, 1, 16))
+        net = resunet(1, 1, spatial=(32,), normalizor='layer', block=SEBottleneck)
+        net(th.rand(1, 1, 16))
+
+    def testSE2D(self):
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=SEBasicBlock)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=SEBasicBlock)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=SEBasicBlock)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=SEBottleneck)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=SEBottleneck)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=SEBottleneck)
+        net(th.rand(1, 1, 32, 16))
+
+    def testSE3D(self):
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], block=SEBasicBlock)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='instance', block=SEBasicBlock)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='layer', block=SEBasicBlock)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], block=SEBottleneck)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='instance', block=SEBottleneck)
+        net(th.rand(1, 1, 4, 16, 32))
+        net = resunet(1, 1, spatial=(4, 16, 32), scales=[[0, -1, -1], [-1, -1, -1], [0, -1, -1], [-1, -1, -1]], normalizor='layer', block=SEBottleneck)
         net(th.rand(1, 1, 4, 16, 32))
