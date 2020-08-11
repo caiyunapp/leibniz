@@ -31,3 +31,10 @@ class CappingRelu(th.nn.Module):
     def forward(self, x):
         return th.clamp(self.leaky(x), max=10)
 
+
+class Atanh(nn.Module):
+    def __init__(self):
+        super(Atanh, self).__init__()
+
+    def forward(self, x):
+        return th.log1p(2 * x / (1 - x)) / 2
