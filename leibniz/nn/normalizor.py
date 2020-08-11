@@ -1,8 +1,6 @@
-import torch as th
 import torch.nn as nn
 
 from torchpwl.pwl import BasePointPWL, MonoPointPWL, MonoSlopedPWL
-from leibniz.nn.activation import Atanh
 
 
 class InversedMonoPointPWL(BasePointPWL):
@@ -26,7 +24,6 @@ class PWLNormalizorApp(nn.Module):
     def __init__(self, num_channels, num_breakpoints, monotonicity=1):
         super(PWLNormalizorApp, self).__init__()
         self.pwl = MonoPointPWL(num_channels, num_breakpoints, monotonicity=monotonicity)
-        self.tanh = nn.Tanh()
 
     def forward(self, x):
         return self.pwl(x)
@@ -36,7 +33,6 @@ class PWLNormalizorInv(nn.Module):
     def __init__(self, app):
         super(PWLNormalizorInv, self).__init__()
         self.pwl = InversedMonoPointPWL(app.pwl)
-        self.atanh = Atanh()
 
     def forward(self, x):
         return self.pwl(x)
