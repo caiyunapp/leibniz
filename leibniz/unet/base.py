@@ -157,7 +157,7 @@ class Block(nn.Module):
 
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, block=None, relu=None, layers=4, ratio=2,
-                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch'):
+                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', final_normalized=True):
         super().__init__()
 
         extension = block.extension
@@ -183,6 +183,7 @@ class UNet(nn.Module):
         factors = np.exp2(factors)
         num_filters = int(in_channels * ratio)
 
+        self.final_normalized = final_normalized
         self.ratio = ratio
         self.hblks = hblks
         self.vblks = vblks
@@ -285,4 +286,7 @@ class UNet(nn.Module):
             hzt = hzts[ix]
             upt, dec = self.upforms[ix](self.deconvs[ix](upt, hzt))
 
-        return self.relu6(self.oconv(upt)) / 6
+        if self.final_normalized:
+            return self.relu6(self.oconv(upt)) / 6
+        else:
+            return self.oconv(upt)
