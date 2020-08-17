@@ -26,14 +26,14 @@ class HyperBasic(nn.Module):
         else:
             self.conv = conv
 
-        self.conv0 = self.conv(dim // 2, dim // 2, kernel_size=3, padding=1)
+        self.conv0 = self.conv(dim, dim // 2, kernel_size=3, padding=1)
         self.conv1 = self.conv(3 * dim, dim, kernel_size=3, padding=1)
         self.conv2 = self.conv(dim, dim, kernel_size=3, padding=1)
         self.se = SELayer(dim, reduction)
 
     def forward(self, y):
         x, theta = y[:, 0:self.dim // 2], y[:, self.dim // 2:self.dim]
-        u = self.conv0(x)
+        u = self.conv0(y)
 
         cs = self.step * u * th.cos(theta * np.pi * 6)
         ss = self.step * u * th.sin(theta * np.pi * 6)
@@ -72,7 +72,7 @@ class HyperBottleneck(nn.Module):
         else:
             self.conv = conv
 
-        self.conv0 = self.conv(dim // 2, dim // 2, kernel_size=3, padding=1)
+        self.conv0 = self.conv(dim, dim // 2, kernel_size=3, padding=1)
         self.conv1 = self.conv(3 * dim, 3 * dim // 4, kernel_size=1, bias=False)
         self.conv2 = self.conv(3 * dim // 4, dim // 2, kernel_size=3, bias=False, padding=1)
         self.conv3 = self.conv(dim // 2, dim, kernel_size=1, bias=False)
@@ -81,7 +81,7 @@ class HyperBottleneck(nn.Module):
     def forward(self, y):
 
         x, theta = y[:, 0:self.dim // 2], y[:, self.dim // 2:self.dim]
-        u = self.conv0(x)
+        u = self.conv0(y)
 
         cs = self.step * u * th.cos(theta * np.pi * 6)
         ss = self.step * u * th.sin(theta * np.pi * 6)
