@@ -17,6 +17,8 @@ pip install leibniz
 How to use
 -----------
 
+### Physics-informed
+
 As an example we solve a very simple advection problem, a box-shaped material transported by a constant steady wind.
 
 ![moving box](https://raw.githubusercontent.com/caiyunapp/leibniz/master/advection_3d.gif)
@@ -57,6 +59,58 @@ def derivitive(t, clouds):
 
 # integrate the system with rk4
 pred = odeint(derivitive, fld, th.arange(0, 7, 1 / 100), method='rk4')
+```
+
+### UNet, ResUNet and variations
+
+```python
+from leibniz.unet.base import UNet
+from leibniz.unet.hyperbolic import HyperBottleneck
+from leibniz.nn.activation import CappingRelu
+
+
+unet = UNet(6, 1, normalizor='batch', spatial=(32, 64), layers=5, ratio=1,
+            vblks=[4, 4, 4, 4, 4], hblks=[1, 1, 1, 1, 1],
+            scales=[-1, -1, -1, -1, -1], factors=[1, 1, 1, 1, 1],
+            block=HyperBottleneck, relu=CappingRelu(), final_normalized=False)
+```
+
+We provide a ResUNet implementation, which is a UNet variation can insert ResNet blocks between layers.
+The supported ResNet blocks are include
+* Pure ResNet: Basic, Bottleneck block
+* SENet variations: Basic, Bottleneck block
+* Hyperbolic variations: Basic, Bottleneck block
+
+We support 1d, 2d, 3d UNet.
+
+normalizor are include:
+* batch: BatchNorm
+* layer: LayerNorm
+* instance: InstanceNorm
+
+Other hyperparameters are include:
+* spatial: the sizes of the spatial dimentions
+* ratio: the ratio to decide the intial number of channels into the UNet
+* vblks: how many vertical blocks is inserted between two layers
+* hblks: how many horizontal blocks is inserted in the skip connections
+* scales: scale factors(power-2-based) on the spatial dimentions
+* factors: expand or shrink factors(power-2-based) on the channels
+* final_normalized: wheather to scale to final result between 0 to 1
+
+### Piecewise Linear normalizor
+
+Piecewise Linear normalizor provide an learnable monotonic peicewise linear functions and its inverse fucntion.
+The API is shown as below
+
+```python
+
+from leibniz.nn.normalizor import PWLNormalizor
+
+# on 3 channels, given 128 segmented pieces, and assuming the input data have a zero mean and 1.0 std
+pwln = PWLNormalizor(3, 128, mean=0.0, std=1.0)
+
+normed = pwln(input)
+output = pwln.inverse(normed)
 ```
 
 How to release
