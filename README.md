@@ -4,6 +4,7 @@
 
 Leibniz is a python package which provide facilities to express learnable differential equations with PyTorch
 
+We also provide UNet, ResUNet and their variations, especially the Hyperbolic blocks for ResUNet.
 
 Install
 --------
@@ -74,6 +75,7 @@ Contributors
 
 * Mingli Yuan ([Mountain](https://github.com/mountain))
 * Xiang Pan ([Panpanx](https://github.com/Panpanx))
+* Yi Liu ([YiLiu](https://github.com/YiLiu-Lly))
 
 Acknowledge
 -----------
