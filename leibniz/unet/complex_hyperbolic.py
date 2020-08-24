@@ -27,9 +27,9 @@ class CmplxHyperBasic(nn.Module):
             self.conv = conv
 
         self.conv0 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.conv1 = self.conv(dim, dim // 2, kernel_size=3, padding=1)
+        self.conv1 = self.conv(dim, dim // 2, kernel_size=3, padding=1, bias=False)
         self.conv2 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.conv3 = self.conv(dim, dim // 2, kernel_size=3, padding=1)
+        self.conv3 = self.conv(dim, dim // 2, kernel_size=3, padding=1, bias=False)
         self.se = SELayer(dim, reduction)
 
     def forward(self, z):
