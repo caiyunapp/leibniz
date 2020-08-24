@@ -208,7 +208,7 @@ class UNet(nn.Module):
                 relu = nn.ReLU(inplace=True)
 
             ex = extension
-            c0 = int(ex * num_filters // ex * ex)
+            c0 = int(num_filters // ex * ex)
             self.iconv = Conv(in_channels, c0, kernel_size=3, padding=1, groups=1)
             self.oconv = Conv(c0, out_channels, kernel_size=3, padding=1, bias=False, groups=1)
             self.relu6 = nn.ReLU6()
