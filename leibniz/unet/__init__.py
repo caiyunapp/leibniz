@@ -6,18 +6,18 @@ from leibniz.nn.activation import Swish
 
 
 def unet4(in_channels, out_channels, spatial=(256, 256)):
-    return UNet(in_channels, out_channels, block=None, relu=Swish(), layers=4, ratio=2,
+    return UNet(in_channels, out_channels, block=None, relu=Swish(), layers=4, ratio=0,
                  vblks=[0, 0, 0, 0], hblks=[0, 0, 0, 0],
                  scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=spatial)
 
 
 def unet8(in_channels, out_channels, spatial=(256, 256)):
-    return UNet(in_channels, out_channels, block=None, relu=Swish(), layers=8, ratio=2,
+    return UNet(in_channels, out_channels, block=None, relu=Swish(), layers=8, ratio=0,
                  vblks=[0, 0, 0, 0, 0, 0, 0, 0], hblks=[0, 0, 0, 0, 0, 0, 0, 0],
                  scales=[-1, -1, -1, -1, -1, -1, -1, -1], factors=[1, 1, 1, 1, 1, 1, 1, 1], spatial=spatial)
 
 
-def resunet(in_channels, out_channels, block=Basic, relu=Swish(), layers=4, ratio=2,
+def resunet(in_channels, out_channels, block=Basic, relu=Swish(), layers=4, ratio=0,
                  vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
                  scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=(256, 256), normalizor='batch'):
     return UNet(in_channels, out_channels, block=block, relu=relu, layers=layers, ratio=ratio,
