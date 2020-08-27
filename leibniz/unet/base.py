@@ -11,7 +11,7 @@ logger.setLevel(logging.INFO)
 
 
 class Enconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=(256, 256), conv=nn.Conv2d):
+    def __init__(self, in_channels, out_channels, size=(256, 256), conv=nn.Conv2d, padding=None):
 
         super(Enconv, self).__init__()
         self.in_channels = in_channels
@@ -26,21 +26,26 @@ class Enconv(nn.Module):
             self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
 
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
+        self.padding = padding
 
     def forward(self, x):
         ratio = (np.array(x.size())[-len(self.size):].prod()) / (np.array(self.size).prod())
         if ratio < 1.0:
-            x = self.scale(x).contiguous()
+            x = self.scale(x)
+            if self.padding is not None:
+                x = self.padding(x)
             x = self.conv(x)
         else:
+            if self.padding is not None:
+                x = self.padding(x)
             x = self.conv(x)
-            x = self.scale(x).contiguous()
+            x = self.scale(x)
 
         return x
 
 
 class Deconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=(256,256), conv=nn.Conv2d):
+    def __init__(self, in_channels, out_channels, size=(256,256), conv=nn.Conv2d, padding=None):
 
         super(Deconv, self).__init__()
         self.in_channels = in_channels
@@ -55,15 +60,20 @@ class Deconv(nn.Module):
             self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
 
         self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
+        self.padding = padding
 
     def forward(self, x):
         ratio = (np.array(x.size())[-len(self.size):].prod()) / (np.array(self.size).prod())
         if ratio < 1.0:
-            x = self.scale(x).contiguous()
+            x = self.scale(x)
+            if self.padding is not None:
+                x = self.padding(x)
             x = self.conv(x)
         else:
+            if self.padding is not None:
+                x = self.padding(x)
             x = self.conv(x)
-            x = self.scale(x).contiguous()
+            x = self.scale(x)
 
         return x
 
@@ -157,7 +167,7 @@ class Block(nn.Module):
 
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, block=None, relu=None, layers=4, ratio=2,
-                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', final_normalized=True):
+                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
         extension = block.extension
@@ -209,8 +219,18 @@ class UNet(nn.Module):
 
             ex = extension
             c0 = int(ex * num_filters // ex * ex)
-            self.iconv = Conv(in_channels, c0, kernel_size=3, padding=1, groups=1)
-            self.oconv = Conv(c0, out_channels, kernel_size=3, padding=1, bias=False, groups=1)
+            if padding:
+                self.iconv = nn.Sequential(
+                    padding,
+                    Conv(in_channels, c0, kernel_size=3, padding=1, groups=1),
+                )
+                self.oconv = nn.Sequential(
+                    padding,
+                    Conv(c0, out_channels, kernel_size=3, padding=1, bias=False, groups=1),
+                )
+            else:
+                self.iconv = Conv(in_channels, c0, kernel_size=3, padding=1, groups=1)
+                self.oconv = Conv(c0, out_channels, kernel_size=3, padding=1, bias=False, groups=1)
             self.relu6 = nn.ReLU6()
 
             self.enconvs = nn.ModuleList()
@@ -236,10 +256,10 @@ class UNet(nn.Module):
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv), activation=True, dropout=dropout_flag, relu=relu, dim=self.dim, normalizor=normalizor))
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout_flag, relu=relu, dim=self.dim, normalizor=normalizor))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=TConv))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv), activation=True, dropout=False, relu=relu, dim=self.dim, normalizor=normalizor))
+                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False, relu=relu, dim=self.dim, normalizor=normalizor))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                     except Exception as e:
                         logger.exception(e)
