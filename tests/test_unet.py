@@ -8,10 +8,8 @@ from leibniz.unet.hyperbolic import HyperBasic
 from leibniz.unet.hyperbolic import HyperBottleneck
 from leibniz.unet.complex_hyperbolic import CmplxHyperBasic
 from leibniz.unet.complex_hyperbolic import CmplxHyperBottleneck
-from leibniz.unet.senet import SEBasicBlock
-from leibniz.unet.senet import SEBottleneck
-from leibniz.unet.warp import WarpBasicBlock
-from leibniz.unet.warp import WarpBottleneck
+from leibniz.unet.senet import SEBasicBlock, SEBottleneck, SELayer
+from leibniz.unet.warp import WarpBasicBlock, WarpBottleneck, WarpLayer
 
 
 class TestUnet(unittest.TestCase):
@@ -195,15 +193,15 @@ class TestUnet(unittest.TestCase):
         net(th.rand(1, 1, 32, 16))
 
     def testWP2D(self):
-        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=WarpBasicBlock)
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=WarpBasicBlock, attn=SELayer)
         net(th.rand(1, 1, 32, 16))
-        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=WarpBasicBlock)
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=WarpBasicBlock, attn=WarpLayer)
         net(th.rand(1, 1, 32, 16))
-        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=WarpBasicBlock)
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=WarpBasicBlock, attn=SELayer)
         net(th.rand(1, 1, 32, 16))
-        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=WarpBottleneck)
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=WarpBottleneck, attn=SELayer)
         net(th.rand(1, 1, 32, 16))
-        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=WarpBottleneck)
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=WarpBottleneck, attn=WarpLayer)
         net(th.rand(1, 1, 32, 16))
-        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=WarpBottleneck)
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=WarpBottleneck, attn=SELayer)
         net(th.rand(1, 1, 32, 16))

@@ -114,7 +114,7 @@ class Transform(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, transform, activation=True, dropout=False, relu=None, dim=2, normalizor='batch'):
+    def __init__(self, transform, activation=True, dropout=False, relu=None, attn=SELayer, dim=2, normalizor='batch'):
 
         super(Block, self).__init__()
         self.activation = activation
@@ -123,7 +123,7 @@ class Block(nn.Module):
 
         self.transform = transform
 
-        self.se = SELayer(transform.out_channels)
+        self.attn = attn(transform.out_channels)
 
         if self.activation:
             if relu is not None:
@@ -172,13 +172,13 @@ class Block(nn.Module):
         if self.dropout:
             x = self.drop(x)
 
-        x = self.se(x)
+        x = self.attn(x)
 
         return x
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels, block=None, relu=None, layers=4, ratio=2,
+    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2,
                  vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
@@ -229,6 +229,9 @@ class UNet(nn.Module):
             if relu is None:
                 relu = nn.ReLU(inplace=True)
 
+            if attn is None:
+                attn = SELayer
+
             ex = extension
             c0 = int(ex * num_filters // ex * ex)
             if padding:
@@ -272,10 +275,10 @@ class UNet(nn.Module):
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout_flag, relu=relu, dim=self.dim, normalizor=normalizor))
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout_flag, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=TConv))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False, relu=relu, dim=self.dim, normalizor=normalizor))
+                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                     except Exception as e:
                         logger.exception(e)
