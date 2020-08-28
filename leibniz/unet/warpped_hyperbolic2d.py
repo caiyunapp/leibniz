@@ -30,7 +30,7 @@ class HyperBasic(nn.Module):
         self.conv1 = self.conv(dim, dim // 2, kernel_size=3, padding=1)
         self.conv2 = self.conv(3 * dim, dim, kernel_size=3, padding=1)
         self.conv3 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.warp = WarpLayer(dim, reduction)
+        self.warp = WarpLayer(dim)
 
     def forward(self, y):
         x, theta = y[:, 0:self.dim // 2], y[:, self.dim // 2:self.dim]
