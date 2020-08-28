@@ -233,7 +233,7 @@ class UNet(nn.Module):
                 attn = SELayer
 
             ex = extension
-            c0 = int(ex * num_filters // ex * ex)
+            c0 = int(ex * num_filters)
             if padding:
                 self.conv_padding = 0
                 self.iconv = nn.Sequential(
