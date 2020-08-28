@@ -82,7 +82,7 @@ class HyperBottleneck(nn.Module):
         self.conv4 = self.conv(6 * dim, 6 * dim // 4, kernel_size=1, bias=False)
         self.conv5 = self.conv(6 * dim // 4, dim, kernel_size=3, bias=False, padding=1)
         self.conv6 = self.conv(dim, dim, kernel_size=1, bias=False)
-        self.warp = WarpLayer(dim, reduction)
+        self.warp = WarpLayer(dim)
 
     def forward(self, y):
         u = self.conv0(y)
