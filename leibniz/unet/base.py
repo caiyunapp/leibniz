@@ -25,8 +25,11 @@ class Enconv(nn.Module):
         elif len(size) == 3:
             self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
 
-        self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
         self.padding = padding
+        if padding is not None:
+            self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, groups=1)
+        else:
+            self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
         ratio = (np.array(x.size())[-len(self.size):].prod()) / (np.array(self.size).prod())
@@ -59,8 +62,11 @@ class Deconv(nn.Module):
         elif len(size) == 3:
             self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
 
-        self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
         self.padding = padding
+        if padding is not None:
+            self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, groups=1)
+        else:
+            self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
 
     def forward(self, x):
         ratio = (np.array(x.size())[-len(self.size):].prod()) / (np.array(self.size).prod())
@@ -220,18 +226,22 @@ class UNet(nn.Module):
             ex = extension
             c0 = int(ex * num_filters // ex * ex)
             if padding:
+                self.conv_padding = 0
                 self.iconv = nn.Sequential(
                     padding,
-                    Conv(in_channels, c0, kernel_size=3, padding=1, groups=1),
+                    Conv(in_channels, c0, kernel_size=3, padding=self.conv_padding, groups=1),
                 )
                 self.oconv = nn.Sequential(
                     padding,
-                    Conv(c0, out_channels, kernel_size=3, padding=1, bias=False, groups=1),
+                    Conv(c0, out_channels, kernel_size=3, padding=self.conv_padding, bias=False, groups=1),
                 )
             else:
-                self.iconv = Conv(in_channels, c0, kernel_size=3, padding=1, groups=1)
-                self.oconv = Conv(c0, out_channels, kernel_size=3, padding=1, bias=False, groups=1)
-            self.relu6 = nn.ReLU6()
+                self.conv_padding = 1
+                self.iconv = Conv(in_channels, c0, kernel_size=3, padding=self.conv_padding, groups=1)
+                self.oconv = Conv(c0, out_channels, kernel_size=3, padding=self.conv_padding, bias=False, groups=1)
+
+            if final_normalized:
+                self.relu6 = nn.ReLU6()
 
             self.enconvs = nn.ModuleList()
             self.dnforms = nn.ModuleList()
