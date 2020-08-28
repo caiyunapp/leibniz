@@ -10,6 +10,8 @@ from leibniz.unet.complex_hyperbolic import CmplxHyperBasic
 from leibniz.unet.complex_hyperbolic import CmplxHyperBottleneck
 from leibniz.unet.senet import SEBasicBlock
 from leibniz.unet.senet import SEBottleneck
+from leibniz.unet.warp import WarpBasicBlock
+from leibniz.unet.warp import WarpBottleneck
 
 
 class TestUnet(unittest.TestCase):
@@ -190,4 +192,18 @@ class TestUnet(unittest.TestCase):
         net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='group', block=HyperBottleneck)
         net(th.rand(1, 1, 32, 16))
         net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='group', block=HyperBottleneck)
+        net(th.rand(1, 1, 32, 16))
+
+    def testWP2D(self):
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=WarpBasicBlock)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=WarpBasicBlock)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=WarpBasicBlock)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], block=WarpBottleneck)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='instance', block=WarpBottleneck)
+        net(th.rand(1, 1, 32, 16))
+        net = resunet(1, 1, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], normalizor='layer', block=WarpBottleneck)
         net(th.rand(1, 1, 32, 16))

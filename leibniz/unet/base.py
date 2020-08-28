@@ -6,6 +6,8 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
+from leibniz.unet.senet import SELayer
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
@@ -121,6 +123,8 @@ class Block(nn.Module):
 
         self.transform = transform
 
+        self.se = SELayer(transform.out_channels)
+
         if self.activation:
             if relu is not None:
                 self.lrelu = relu
@@ -167,6 +171,8 @@ class Block(nn.Module):
 
         if self.dropout:
             x = self.drop(x)
+
+        x = self.se(x)
 
         return x
 
