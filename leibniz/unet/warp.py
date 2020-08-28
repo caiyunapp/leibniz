@@ -13,8 +13,8 @@ class DenseGridGen(nn.Module):
         xs = x.size()
 
         if xs[0] not in self.grids:
-            g0 = th.linspace(-1, 1, x.size(2), requires_grad=False).unsqueeze(0).repeat(x.size(1), 1)
-            g1 = th.linspace(-1, 1, x.size(1), requires_grad=False).unsqueeze(1).repeat(1, x.size(2))
+            g0 = th.linspace(-1, 1, x.size(2), device=x.get_device(), requires_grad=False).unsqueeze(0).repeat(x.size(1), 1)
+            g1 = th.linspace(-1, 1, x.size(1), device=x.get_device(), requires_grad=False).unsqueeze(1).repeat(1, x.size(2))
             grid = th.cat([g0.unsqueeze(-1), g1.unsqueeze(-1)], -1)
             gs = grid.size()
             self.grids[xs[0]] = grid.unsqueeze(0).expand(xs[0], gs[0], gs[1], gs[2])
