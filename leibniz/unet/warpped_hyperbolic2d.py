@@ -7,8 +7,47 @@ import torch.nn as nn
 from leibniz.unet.warp import WarpLayer
 
 
+class BasicBlock(nn.Module):
+    def __init__(self, in_channel, out_channel, step, relu, conv, reduction=16):
+        super(BasicBlock, self).__init__()
+        self.step = step
+        self.relu = relu
+
+        self.conv1 = conv(in_channel, in_channel, kernel_size=3, stride=1, padding=1)
+        self.conv2 = conv(in_channel, out_channel, kernel_size=3, stride=1, padding=1)
+        self.warp = WarpLayer(out_channel)
+
+    def forward(self, x):
+        y = self.conv1(x)
+        y = self.relu(y)
+        y = self.conv2(y)
+        y = self.warp(y)
+        return y
+
+
+class Bottleneck(nn.Module):
+    def __init__(self, in_channel, out_channel, step, relu, conv, reduction=16):
+        super(Bottleneck, self).__init__()
+        self.step = step
+        self.relu = relu
+
+        self.conv1 = conv(in_channel, in_channel // 4, kernel_size=1, bias=False)
+        self.conv2 = conv(in_channel // 4, in_channel // 4, kernel_size=3, bias=False, padding=1)
+        self.conv3 = conv(in_channel // 4, out_channel, kernel_size=1, bias=False)
+        self.warp = WarpLayer(out_channel)
+
+    def forward(self, x):
+        y = self.conv1(x)
+        y = self.relu(y)
+        y = self.conv2(y)
+        y = self.relu(y)
+        y = self.conv3(y)
+        y = self.warp(y)
+        return y
+
+
 class HyperBasic(nn.Module):
-    extension = 2
+    extension = 1
     least_required_dim = 1
 
     def __init__(self, dim, step, relu, conv, reduction=16):
@@ -16,44 +55,24 @@ class HyperBasic(nn.Module):
         self.dim = dim
         self.step = step
 
-        if relu is None:
-            self.relu = nn.ReLU(inplace=True)
-        else:
-            self.relu = relu
+        self.input = BasicBlock(dim, 4 * dim, step, relu, conv, reduction=reduction)
+        self.output = BasicBlock(8 * dim, dim, step, relu, conv, reduction=reduction)
 
-        if conv is None:
-            self.conv = nn.Conv2d
-        else:
-            self.conv = conv
+    def forward(self, x):
+        input = self.input(x)
+        velo = input[:, 2 * self.dim:3 * self.dim]
+        theta = input[:, 3 * self.dim:]
 
-        self.conv0 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.conv1 = self.conv(dim, dim // 2, kernel_size=3, padding=1)
-        self.conv2 = self.conv(3 * dim, dim, kernel_size=3, padding=1)
-        self.conv3 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.warp = WarpLayer(dim)
-
-    def forward(self, y):
-        x, theta = y[:, 0:self.dim // 2], y[:, self.dim // 2:self.dim]
-        u = self.conv0(y)
-        u = self.relu(u)
-        u = self.conv1(u)
-
-        cs = self.step * u * th.cos(theta * np.pi * 6)
-        ss = self.step * u * th.sin(theta * np.pi * 6)
+        cs = self.step * velo * th.cos(theta * np.pi * 6)
+        ss = self.step * velo * th.sin(theta * np.pi * 6)
 
         y1 = (1 + ss) * x + cs
         y2 = (1 + cs) * x - ss
         y3 = (1 - cs) * x + ss
         y4 = (1 - ss) * x - cs
-        ys = th.cat((y1, y2, y3, y4, cs, ss), dim=1)
+        ys = th.cat((y1, y2, y3, y4, input), dim=1)
 
-        dy = self.conv2(ys)
-        dy = self.relu(dy)
-        dy = self.conv3(dy)
-
-        y = y + self.warp(dy)
-
-        return y
+        return x + self.output(ys)
 
 
 class HyperBottleneck(nn.Module):
@@ -65,49 +84,21 @@ class HyperBottleneck(nn.Module):
         self.dim = dim
         self.step = step
 
-        if relu is None:
-            self.relu = nn.ReLU(inplace=True)
-        else:
-            self.relu = relu
+        self.input = Bottleneck(dim, 4 * dim, step, relu, conv, reduction=reduction)
+        self.output = Bottleneck(8 * dim, dim, step, relu, conv, reduction=reduction)
 
-        if conv is None:
-            self.conv = nn.Conv2d
-        else:
-            self.conv = conv
+    def forward(self, x):
+        input = self.input(x)
+        velo = input[:, 2 * self.dim:3 * self.dim]
+        theta = input[:, 3 * self.dim:]
 
-        self.conv0 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.conv1 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.conv2 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.conv3 = self.conv(dim, dim, kernel_size=3, padding=1)
-        self.conv4 = self.conv(6 * dim, 6 * dim // 4, kernel_size=1, bias=False)
-        self.conv5 = self.conv(6 * dim // 4, dim, kernel_size=3, bias=False, padding=1)
-        self.conv6 = self.conv(dim, dim, kernel_size=1, bias=False)
-        self.warp = WarpLayer(dim)
+        cs = self.step * velo * th.cos(theta * np.pi * 6)
+        ss = self.step * velo * th.sin(theta * np.pi * 6)
 
-    def forward(self, y):
-        u = self.conv0(y)
-        u = self.relu(u)
-        u = self.conv1(u)
+        y1 = (1 + ss) * x + cs
+        y2 = (1 + cs) * x - ss
+        y3 = (1 - cs) * x + ss
+        y4 = (1 - ss) * x - cs
+        ys = th.cat((y1, y2, y3, y4, input), dim=1)
 
-        theta = self.conv2(y)
-        theta = self.relu(theta)
-        theta = self.conv3(theta)
-
-        cs = self.step * u * th.cos(theta * np.pi * 6)
-        ss = self.step * u * th.sin(theta * np.pi * 6)
-
-        y1 = (1 + ss) * y + cs
-        y2 = (1 + cs) * y - ss
-        y3 = (1 - cs) * y + ss
-        y4 = (1 - ss) * y - cs
-        ys = th.cat((y1, y2, y3, y4, cs, ss), dim=1)
-
-        dy = self.conv4(ys)
-        dy = self.relu(dy)
-        dy = self.conv5(dy)
-        dy = self.relu(dy)
-        dy = self.conv6(dy)
-
-        y = y + self.warp(dy)
-
-        return y
+        return x + self.output(ys)

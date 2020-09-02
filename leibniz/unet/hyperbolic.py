@@ -4,7 +4,46 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-from leibniz.unet.senet import SEBasicBlock, SEBottleneck, SELayer
+from leibniz.unet.senet import SELayer
+
+
+class BasicBlock(nn.Module):
+    def __init__(self, in_channel, out_channel, step, relu, conv, reduction=16):
+        super(BasicBlock, self).__init__()
+        self.step = step
+        self.relu = relu
+
+        self.conv1 = conv(in_channel, in_channel, kernel_size=3, stride=1, padding=1)
+        self.conv2 = conv(in_channel, out_channel, kernel_size=3, stride=1, padding=1)
+        self.se = SELayer(out_channel, reduction)
+
+    def forward(self, x):
+        y = self.conv1(x)
+        y = self.relu(y)
+        y = self.conv2(y)
+        y = self.se(y)
+        return y
+
+
+class Bottleneck(nn.Module):
+    def __init__(self, in_channel, out_channel, step, relu, conv, reduction=16):
+        super(Bottleneck, self).__init__()
+        self.step = step
+        self.relu = relu
+
+        self.conv1 = conv(in_channel, in_channel // 4, kernel_size=1, bias=False)
+        self.conv2 = conv(in_channel // 4, in_channel // 4, kernel_size=3, bias=False, padding=1)
+        self.conv3 = conv(in_channel // 4, out_channel, kernel_size=1, bias=False)
+        self.se = SELayer(out_channel, reduction)
+
+    def forward(self, x):
+        y = self.conv1(x)
+        y = self.relu(y)
+        y = self.conv2(y)
+        y = self.relu(y)
+        y = self.conv3(y)
+        y = self.se(y)
+        return y
 
 
 class HyperBasic(nn.Module):
@@ -15,17 +54,14 @@ class HyperBasic(nn.Module):
         super(HyperBasic, self).__init__()
         self.dim = dim
         self.step = step
-        self.relu = relu
 
-        self.theta = SEBasicBlock(dim, step, relu, conv, reduction=reduction)
-        self.velo = SEBasicBlock(dim, step, relu, conv, reduction=reduction)
-        self.conv1 = conv(6 * dim, dim, kernel_size=3, stride=1, padding=1)
-        self.conv2 = conv(dim, dim, kernel_size=3, stride=1, padding=1)
-        self.se = SELayer(dim, reduction)
+        self.input = BasicBlock(dim, 2 * dim, step, relu, conv, reduction=reduction)
+        self.output = BasicBlock(8 * dim, dim, step, relu, conv, reduction=reduction)
 
     def forward(self, x):
-        velo = self.velo(x)
-        theta = self.theta(x)
+        input = self.input(x)
+        velo = input[:, :self.dim]
+        theta = input[:, self.dim:]
 
         cs = self.step * velo * th.cos(theta * np.pi * 6)
         ss = self.step * velo * th.sin(theta * np.pi * 6)
@@ -34,15 +70,9 @@ class HyperBasic(nn.Module):
         y2 = (1 + cs) * x - ss
         y3 = (1 - cs) * x + ss
         y4 = (1 - ss) * x - cs
-        ys = th.cat((y1, y2, y3, y4, cs, ss), dim=1)
+        ys = th.cat((y1, y2, y3, y4, cs, ss, velo, x), dim=1)
 
-        y = self.conv1(ys)
-        y = self.relu(y)
-        y = self.conv2(y)
-        y = self.se(y)
-        y = x + y
-
-        return y
+        return x + self.output(ys)
 
 
 class HyperBottleneck(nn.Module):
@@ -53,18 +83,14 @@ class HyperBottleneck(nn.Module):
         super(HyperBottleneck, self).__init__()
         self.dim = dim
         self.step = step
-        self.relu = relu
 
-        self.theta = SEBottleneck(dim, step, relu, conv, reduction=reduction)
-        self.velo = SEBottleneck(dim, step, relu, conv, reduction=reduction)
-        self.conv1 = conv(6 * dim, 3 * dim // 2, kernel_size=1, bias=False)
-        self.conv2 = conv(3 * dim // 2, 3 * dim // 2, kernel_size=3, bias=False, padding=1)
-        self.conv3 = conv(3 * dim // 2, dim, kernel_size=1, bias=False)
-        self.se = SELayer(dim, reduction)
+        self.input = Bottleneck(dim, 2 * dim, step, relu, conv, reduction=reduction)
+        self.output = Bottleneck(8 * dim, dim, step, relu, conv, reduction=reduction)
 
     def forward(self, x):
-        velo = self.velo(x)
-        theta = self.theta(x)
+        input = self.input(x)
+        velo = input[:, :self.dim]
+        theta = input[:, self.dim:]
 
         cs = self.step * velo * th.cos(theta * np.pi * 6)
         ss = self.step * velo * th.sin(theta * np.pi * 6)
@@ -73,14 +99,6 @@ class HyperBottleneck(nn.Module):
         y2 = (1 + cs) * x - ss
         y3 = (1 - cs) * x + ss
         y4 = (1 - ss) * x - cs
-        ys = th.cat((y1, y2, y3, y4, cs, ss), dim=1)
+        ys = th.cat((y1, y2, y3, y4, cs, ss, velo, x), dim=1)
 
-        y = self.conv1(ys)
-        y = self.relu(y)
-        y = self.conv2(y)
-        y = self.relu(y)
-        y = self.conv3(y)
-        y = self.se(y)
-        y = x + y
-
-        return y
+        return x + self.output(ys)
