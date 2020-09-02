@@ -46,7 +46,7 @@ class HyperBasic(nn.Module):
 
 
 class HyperBottleneck(nn.Module):
-    extension = 1
+    extension = 4
     least_required_dim = 1
 
     def __init__(self, dim, step, relu, conv, reduction=16):
@@ -57,9 +57,9 @@ class HyperBottleneck(nn.Module):
 
         self.theta = SEBottleneck(dim, step, relu, conv, reduction=reduction)
         self.velo = SEBottleneck(dim, step, relu, conv, reduction=reduction)
-        self.conv1 = conv(6 * dim, dim, kernel_size=1, bias=False)
-        self.conv2 = conv(dim, dim, kernel_size=3, bias=False, padding=1)
-        self.conv3 = conv(dim, dim, kernel_size=1, bias=False)
+        self.conv1 = conv(6 * dim, 3 * dim // 2, kernel_size=1, bias=False)
+        self.conv2 = conv(3 * dim // 2, 3 * dim // 2, kernel_size=3, bias=False, padding=1)
+        self.conv3 = conv(3 * dim // 2, dim, kernel_size=1, bias=False)
         self.se = SELayer(dim, reduction)
 
     def forward(self, x):
