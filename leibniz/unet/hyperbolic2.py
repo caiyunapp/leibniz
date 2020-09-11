@@ -17,7 +17,7 @@ class HyperBasic(nn.Module):
         self.step = step
 
         self.input = BasicBlock(dim, 2 * dim, step, relu, conv, reduction=reduction)
-        self.output = BasicBlock(2 * dim, dim, step, relu, conv, reduction=reduction)
+        self.output = BasicBlock(4 * dim, dim, step, relu, conv, reduction=reduction)
 
     def forward(self, x):
         input = self.input(x)
@@ -26,9 +26,11 @@ class HyperBasic(nn.Module):
 
         step = self.step * velo
 
-        y2 = (x + th.tanh(theta)) * th.exp(step * th.cosh(theta)) - th.tanh(theta)
-        y4 = (x - th.tanh(theta)) * th.exp(step * th.cosh(theta)) + th.tanh(theta)
-        ys = th.cat((y2, y4), dim=1)
+        y1 = (x + th.tanh(theta)) * th.exp(step * th.sin(theta)) - th.tanh(theta)
+        y2 = (x + th.tanh(theta)) * th.exp(- step * th.cos(theta)) - th.tanh(theta)
+        y3 = (x - th.tanh(theta)) * th.exp(step * th.sin(theta)) + th.tanh(theta)
+        y4 = (x - th.tanh(theta)) * th.exp(- step * th.cos(theta)) + th.tanh(theta)
+        ys = th.cat((y1, y2, y3, y4), dim=1)
 
         return x + self.output(ys)
 
@@ -43,7 +45,7 @@ class HyperBottleneck(nn.Module):
         self.step = step
 
         self.input = Bottleneck(dim, 2 * dim, step, relu, conv, reduction=reduction)
-        self.output = Bottleneck(2 * dim, dim, step, relu, conv, reduction=reduction)
+        self.output = Bottleneck(4 * dim, dim, step, relu, conv, reduction=reduction)
 
     def forward(self, x):
         input = self.input(x)
@@ -52,8 +54,10 @@ class HyperBottleneck(nn.Module):
 
         step = self.step * velo
 
-        y2 = (x + th.tanh(theta)) * th.exp(step * th.cosh(theta)) - th.tanh(theta)
-        y4 = (x - th.tanh(theta)) * th.exp(step * th.cosh(theta)) + th.tanh(theta)
-        ys = th.cat((y2, y4), dim=1)
+        y1 = (x + th.tanh(theta)) * th.exp(step * th.sin(theta)) - th.tanh(theta)
+        y2 = (x + th.tanh(theta)) * th.exp(- step * th.cos(theta)) - th.tanh(theta)
+        y3 = (x - th.tanh(theta)) * th.exp(step * th.sin(theta)) + th.tanh(theta)
+        y4 = (x - th.tanh(theta)) * th.exp(- step * th.cos(theta)) + th.tanh(theta)
+        ys = th.cat((y1, y2, y3, y4), dim=1)
 
         return x + self.output(ys)
