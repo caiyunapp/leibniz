@@ -2,6 +2,7 @@
 
 import torch as th
 import torch.nn as nn
+from torch import nn as nn
 
 
 class Swish(th.nn.Module):
@@ -48,3 +49,22 @@ class Atanh(nn.Module):
 
     def forward(self, x):
         return th.log1p(2 * x / (1 - x)) / 2
+
+
+class ComplexReLU(nn.Module):
+    def __init__(self):
+        super(ComplexReLU, self).__init__()
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, input):
+        return self.relu(input.real) + 1j * self.relu(input.imag)
+
+
+class ComplexLinear(nn.Module):
+    def __init__(self, in_channels, out_channels, bias=True):
+        super(ComplexLinear, self).__init__()
+        self.rfc = nn.Linear(in_channels, out_channels, bias)
+        self.ifc = nn.Linear(in_channels, out_channels, bias)
+
+    def forward(self, input):
+        return self.rfc(input.real) - self.ifc(input.imag) + 1j * (self.rfc(input.imag) + self.ifc(input.real))

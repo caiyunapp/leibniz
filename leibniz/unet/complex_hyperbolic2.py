@@ -3,83 +3,9 @@
 import torch as th
 import torch.nn as nn
 
-from leibniz.nn.activation import Sigmoid
-
-
-class ComplexAvgPool1d(nn.Module):
-    def __init__(self):
-        super(ComplexAvgPool1d, self).__init__()
-        self.pool = nn.AdaptiveAvgPool1d(1)
-
-    def forward(self, input):
-        return self.pool(input.real) + 1j * self.pool(input.imag)
-
-
-class ComplexAvgPool2d(nn.Module):
-    def __init__(self):
-        super(ComplexAvgPool2d, self).__init__()
-        self.pool = nn.AdaptiveAvgPool2d(1)
-
-    def forward(self, input):
-        return self.pool(input.real) + 1j * self.pool(input.imag)
-
-
-class ComplexAvgPool3d(nn.Module):
-    def __init__(self):
-        super(ComplexAvgPool3d, self).__init__()
-        self.pool = nn.AdaptiveAvgPool3d(1)
-
-    def forward(self, input):
-        return self.pool(input.real) + 1j * self.pool(input.imag)
-
-
-class ComplexReLU(nn.Module):
-    def __init__(self):
-        super(ComplexReLU, self).__init__()
-        self.relu = nn.ReLU(inplace=True)
-
-    def forward(self, input):
-        return self.relu(input.real) + 1j * self.relu(input.imag)
-
-
-class ComplexLinear(nn.Module):
-    def __init__(self, in_channels, out_channels, bias=True):
-        super(ComplexLinear, self).__init__()
-        self.rfc = nn.Linear(in_channels, out_channels, bias)
-        self.ifc = nn.Linear(in_channels, out_channels, bias)
-
-    def forward(self, input):
-        return self.rfc(input.real) - self.ifc(input.imag) + 1j * (self.rfc(input.imag) + self.ifc(input.real))
-
-
-class ComplexConv1d(nn.Module):
-    def __init__(self,in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, groups=1, bias=True):
-        super(ComplexConv1d, self).__init__()
-        self.rconv = nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        self.iconv = nn.Conv1d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-
-    def forward(self, input):
-        return self.rconv(input.real) - self.iconv(input.imag) + 1j * (self.rconv(input.imag) + self.iconv(input.real))
-
-
-class ComplexConv2d(nn.Module):
-    def __init__(self,in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, groups=1, bias=True):
-        super(ComplexConv2d, self).__init__()
-        self.rconv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        self.iconv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-
-    def forward(self, input):
-        return self.rconv(input.real) - self.iconv(input.imag) + 1j * (self.rconv(input.imag) + self.iconv(input.real))
-
-
-class ComplexConv3d(nn.Module):
-    def __init__(self,in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, groups=1, bias=True):
-        super(ComplexConv3d, self).__init__()
-        self.rconv = nn.Conv3d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-        self.iconv = nn.Conv3d(in_channels, out_channels, kernel_size, stride, padding, dilation, groups, bias)
-
-    def forward(self, input):
-        return self.rconv(input.real) - self.iconv(input.imag) + 1j * (self.rconv(input.imag) + self.iconv(input.real))
+from leibniz.nn.pooling import ComplexAvgPool1d, ComplexAvgPool2d, ComplexAvgPool3d
+from leibniz.nn.conv import ComplexConv1d, ComplexConv2d, ComplexConv3d
+from leibniz.nn.activation import Sigmoid, ComplexReLU, ComplexLinear
 
 
 class SELayer(nn.Module):
