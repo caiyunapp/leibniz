@@ -16,7 +16,7 @@ class ComplexAvgPool1d(nn.Module):
 class ComplexAvgPool2d(nn.Module):
     def __init__(self):
         super(ComplexAvgPool2d, self).__init__()
-        self.relu = nn.AdaptiveAvgPool2d(1)
+        self.pool = nn.AdaptiveAvgPool2d(1)
 
     def forward(self, input):
         return self.pool(input.real) + 1j * self.pool(input.imag)

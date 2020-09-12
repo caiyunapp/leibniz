@@ -29,6 +29,8 @@ class CappingRelu(th.nn.Module):
         self.leaky = nn.LeakyReLU(inplace=True)
 
     def forward(self, x):
+        if x.dtype == th.cfloat or x.dtype == th.cdouble:
+            return th.clamp(self.leaky(x.real), max=10) + 1j * th.clamp(self.leaky(x.imag), max=10)
         return th.clamp(self.leaky(x), max=10)
 
 
