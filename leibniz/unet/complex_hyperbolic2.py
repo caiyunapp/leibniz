@@ -3,6 +3,8 @@
 import torch as th
 import torch.nn as nn
 
+from leibniz.nn.activation import Sigmoid
+
 
 class ComplexAvgPool1d(nn.Module):
     def __init__(self):
@@ -89,7 +91,7 @@ class SELayer(nn.Module):
             ComplexLinear(channel, channel // reduction + 1, bias=False),
             ComplexReLU(),
             ComplexLinear(channel // reduction + 1, channel, bias=False),
-            nn.Sigmoid()
+            Sigmoid()
         )
 
     def forward(self, x):

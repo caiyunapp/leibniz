@@ -34,6 +34,14 @@ class CappingRelu(th.nn.Module):
         return th.clamp(self.leaky(x), max=10)
 
 
+class Sigmoid(th.nn.Module):
+    def __init__(self):
+        super(Sigmoid, self).__init__()
+
+    def forward(self, x):
+        return th.reciprocal(1 + th.exp(-x))
+
+
 class Atanh(nn.Module):
     def __init__(self):
         super(Atanh, self).__init__()
