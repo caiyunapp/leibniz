@@ -8,6 +8,9 @@ from leibniz.nn.conv import ComplexConv1d, ComplexConv2d, ComplexConv3d
 from leibniz.nn.activation import Sigmoid, ComplexReLU, ComplexLinear
 
 
+def exp(z):
+    return 1 + 2 * th.tanh(z / 2) / (1 - th.tanh(z / 2))
+
 class ComplexSELayer(nn.Module):
     def __init__(self, channel, reduction=16):
         super(ComplexSELayer, self).__init__()
@@ -109,10 +112,10 @@ class CmplxHyperBasic(nn.Module):
 
         step = self.step * velo
 
-        y1 = (x + th.tanh(theta)) * th.exp(step * th.sin(theta)) - th.tanh(theta)
-        y2 = (x + th.tanh(theta * 1j)) * th.exp(step * th.cos(theta * 1j)) - th.tanh(theta * 1j)
-        y3 = (x + th.tanh(theta * -1)) * th.exp(step * th.sin(theta * -1)) - th.tanh(theta * -1)
-        y4 = (x + th.tanh(theta * -1j)) * th.exp(step * th.cos(theta * -1j)) - th.tanh(theta * -1j)
+        y1 = (x + th.tan(theta)) * exp(step * th.sin(theta)) - th.tan(theta)
+        y2 = (x + th.tan(theta * 1j)) * exp(step * th.cos(theta * 1j)) - th.tan(theta * 1j)
+        y3 = (x + th.tan(theta * -1)) * exp(step * th.sin(theta * -1)) - th.tan(theta * -1)
+        y4 = (x + th.tan(theta * -1j)) * exp(step * th.cos(theta * -1j)) - th.tan(theta * -1j)
         ys = th.cat((y1, y2, y3, y4), dim=1)
 
         y = x + self.output(ys)
