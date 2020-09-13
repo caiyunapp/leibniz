@@ -149,10 +149,10 @@ class CmplxHyperBottleneck(nn.Module):
 
         step = self.step * velo
 
-        y1 = (x + th.tanh(theta)) * th.exp(step * th.sin(theta)) - th.tanh(theta)
-        y2 = (x + th.tanh(theta * 1j)) * th.exp(step * th.cos(theta * 1j)) - th.tanh(theta * 1j)
-        y3 = (x + th.tanh(theta * -1)) * th.exp(step * th.cos(theta * -1)) - th.tanh(theta * -1)
-        y4 = (x + th.tanh(theta * -1j)) * th.exp(step * th.cos(theta * -1j)) - th.tanh(theta * -1j)
+        y1 = (x + th.tanh(theta)) * exp(step * th.sin(theta)) - th.tanh(theta)
+        y2 = (x + th.tanh(theta * 1j)) * exp(step * th.cos(theta * 1j)) - th.tanh(theta * 1j)
+        y3 = (x + th.tanh(theta * -1)) * exp(step * th.cos(theta * -1)) - th.tanh(theta * -1)
+        y4 = (x + th.tanh(theta * -1j)) * exp(step * th.cos(theta * -1j)) - th.tanh(theta * -1j)
         ys = th.cat((y1, y2, y3, y4), dim=1)
 
         y = x + self.output(ys)
