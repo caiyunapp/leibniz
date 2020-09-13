@@ -40,7 +40,7 @@ class Sigmoid(th.nn.Module):
         super(Sigmoid, self).__init__()
 
     def forward(self, x):
-        return th.reciprocal(1 + th.exp(-x))
+        return (1 + th.tanh(x)) / 2.0
 
 
 class Atanh(nn.Module):
