@@ -63,3 +63,33 @@ class PWLNormalizor(nn.Module):
 
     def inverse(self, x):
         return self.inv(x) * self.std + self.mean
+
+
+class ComplexBatchNorm1d(nn.Module):
+    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True):
+        super(ComplexBatchNorm1d, self).__init__()
+        self.rbn = nn.BatchNorm1d(num_features, eps, momentum, affine, track_running_stats)
+        self.ibn = nn.BatchNorm1d(num_features, eps, momentum, affine, track_running_stats)
+
+    def forward(self, input):
+        return self.rbn(input.real) + 1j * self.ibn(input.imag)
+
+
+class ComplexBatchNorm2d(nn.Module):
+    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True):
+        super(ComplexBatchNorm2d, self).__init__()
+        self.rbn = nn.BatchNorm2d(num_features, eps, momentum, affine, track_running_stats)
+        self.ibn = nn.BatchNorm2d(num_features, eps, momentum, affine, track_running_stats)
+
+    def forward(self, input):
+        return self.rbn(input.real) + 1j * self.ibn(input.imag)
+
+
+class ComplexBatchNorm3d(nn.Module):
+    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, track_running_stats=True):
+        super(ComplexBatchNorm3d, self).__init__()
+        self.rbn = nn.BatchNorm3d(num_features, eps, momentum, affine, track_running_stats)
+        self.ibn = nn.BatchNorm3d(num_features, eps, momentum, affine, track_running_stats)
+
+    def forward(self, input):
+        return self.rbn(input.real) + 1j * self.ibn(input.imag)

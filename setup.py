@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="leibniz",
-    version="0.0.52",
+    version="0.0.53",
     author="Mingli Yuan",
     author_email="mingli.yuan@gmail.com",
     description="Leibniz is a package providing facilities to express learnable differential equations based on PyTorch",

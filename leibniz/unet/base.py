@@ -6,26 +6,39 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
+from leibniz.nn.dropout import ComplexDropout1d, ComplexDropout2d, ComplexDropout3d
+from leibniz.nn.normalizor import ComplexBatchNorm1d, ComplexBatchNorm2d, ComplexBatchNorm3d
+from leibniz.nn.conv import ComplexConv1d, ComplexConv2d, ComplexConv3d
+from leibniz.nn.sampling import ComplexUpsample1d, ComplexUpsample2d, ComplexUpsample3d
 from leibniz.unet.senet import SELayer
+from leibniz.unet.complex_hyperbolic2 import ComplexSELayer
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
 class Enconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=(256, 256), conv=nn.Conv2d, padding=None):
+    def __init__(self, in_channels, out_channels, size=(256, 256), conv=nn.Conv2d, padding=None, complex=False):
 
         super(Enconv, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.size = size
 
-        if len(size) == 1:
-            self.scale = nn.Upsample(size=tuple(size), mode='linear')
-        elif len(size) == 2:
-            self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
-        elif len(size) == 3:
-            self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
+        if not complex:
+            if len(size) == 1:
+                self.scale = nn.Upsample(size=tuple(size), mode='linear')
+            elif len(size) == 2:
+                self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
+            elif len(size) == 3:
+                self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
+        else:
+            if len(size) == 1:
+                self.scale = ComplexUpsample1d(size=tuple(size))
+            elif len(size) == 2:
+                self.scale = ComplexUpsample2d(size=tuple(size))
+            elif len(size) == 3:
+                self.scale = ComplexUpsample3d(size=tuple(size))
 
         self.padding = padding
         if padding is not None:
@@ -50,19 +63,27 @@ class Enconv(nn.Module):
 
 
 class Deconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=(256,256), conv=nn.Conv2d, padding=None):
+    def __init__(self, in_channels, out_channels, size=(256,256), conv=nn.Conv2d, padding=None, complex=False):
 
         super(Deconv, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.size = size
 
-        if len(size) == 1:
-            self.scale = nn.Upsample(size=tuple(size), mode='linear')
-        elif len(size) == 2:
-            self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
-        elif len(size) == 3:
-            self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
+        if not complex:
+            if len(size) == 1:
+                self.scale = nn.Upsample(size=tuple(size), mode='linear')
+            elif len(size) == 2:
+                self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
+            elif len(size) == 3:
+                self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
+        else:
+            if len(size) == 1:
+                self.scale = ComplexUpsample1d(size=tuple(size))
+            elif len(size) == 2:
+                self.scale = ComplexUpsample2d(size=tuple(size))
+            elif len(size) == 3:
+                self.scale = ComplexUpsample3d(size=tuple(size))
 
         self.padding = padding
         if padding is not None:
@@ -114,7 +135,7 @@ class Transform(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, transform, activation=True, dropout=False, relu=None, attn=SELayer, dim=2, normalizor='batch'):
+    def __init__(self, transform, activation=True, dropout=False, relu=None, attn=SELayer, dim=2, normalizor='batch', complex=False):
 
         super(Block, self).__init__()
         self.activation = activation
@@ -133,12 +154,21 @@ class Block(nn.Module):
 
         self.normalizor = None
         if normalizor == 'batch':
-            if dim == 1:
-                self.normalizor = nn.BatchNorm1d(transform.out_channels, affine=True)
-            elif dim == 2:
-                self.normalizor = nn.BatchNorm2d(transform.out_channels, affine=True)
-            elif dim == 3:
-                self.normalizor = nn.BatchNorm3d(transform.out_channels, affine=True)
+            if not complex:
+                if dim == 1:
+                    self.normalizor = nn.BatchNorm1d(transform.out_channels, affine=True)
+                elif dim == 2:
+                    self.normalizor = nn.BatchNorm2d(transform.out_channels, affine=True)
+                elif dim == 3:
+                    self.normalizor = nn.BatchNorm3d(transform.out_channels, affine=True)
+            else:
+                if dim == 1:
+                    self.normalizor = ComplexBatchNorm1d(transform.out_channels, affine=True)
+                elif dim == 2:
+                    self.normalizor = ComplexBatchNorm2d(transform.out_channels, affine=True)
+                elif dim == 3:
+                    self.normalizor = ComplexBatchNorm3d(transform.out_channels, affine=True)
+
         elif normalizor == 'instance':
             if dim == 1:
                 self.normalizor = nn.InstanceNorm1d(transform.out_channels)
@@ -146,16 +176,26 @@ class Block(nn.Module):
                 self.normalizor = nn.InstanceNorm2d(transform.out_channels)
             elif dim == 3:
                 self.normalizor = nn.InstanceNorm3d(transform.out_channels)
+
         elif normalizor == 'layer':
             self.normalizor = nn.LayerNorm(tuple([transform.out_channels]) + tuple(transform.size))
 
         if self.dropout:
-            if dim == 1:
-                self.drop = nn.Dropout(p=0.5)
-            elif dim == 2:
-                self.drop = nn.Dropout2d(p=0.5)
-            elif dim == 3:
-                self.drop = nn.Dropout3d(p=0.5)
+            if not complex:
+                if dim == 1:
+                    self.drop = nn.Dropout(p=0.5)
+                elif dim == 2:
+                    self.drop = nn.Dropout2d(p=0.5)
+                elif dim == 3:
+                    self.drop = nn.Dropout3d(p=0.5)
+            else:
+                if dim == 1:
+                    self.drop = ComplexDropout1d(p=0.5)
+                elif dim == 2:
+                    self.drop = ComplexDropout2d(p=0.5)
+                elif dim == 3:
+                    self.drop = ComplexDropout3d(p=0.5)
+
 
     def forward(self, *xs):
 
@@ -179,8 +219,10 @@ class Block(nn.Module):
 
 class UNet(nn.Module):
     def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2,
-                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
+                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True, complex=False):
         super().__init__()
+
+        self.complex = complex
 
         extension = block.extension
         lrd = block.least_required_dim
@@ -230,7 +272,10 @@ class UNet(nn.Module):
                 relu = nn.ReLU(inplace=True)
 
             if attn is None:
-                attn = SELayer
+                if not self.complex:
+                    attn = SELayer
+                else:
+                    attn = ComplexSELayer
 
             ex = extension
             c0 = int(ex * num_filters)
@@ -275,10 +320,10 @@ class UNet(nn.Module):
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout_flag, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor))
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding, complex=complex), activation=True, dropout=dropout_flag, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, complex=complex))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=TConv))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor))
+                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv, padding=padding, complex=complex), activation=True, dropout=False, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, complex=complex))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                     except Exception as e:
                         logger.exception(e)
@@ -288,25 +333,45 @@ class UNet(nn.Module):
                     raise ValueError('scales exceeded!')
 
     def get_conv_for_prepare(self):
-        if self.dim == 1:
-            conv = nn.Conv1d
-        elif self.dim == 2:
-            conv = nn.Conv2d
-        elif self.dim == 3:
-            conv = nn.Conv3d
+        if not self.complex:
+            if self.dim == 1:
+                conv = nn.Conv1d
+            elif self.dim == 2:
+                conv = nn.Conv2d
+            elif self.dim == 3:
+                conv = nn.Conv3d
+            else:
+                raise ValueError('dim %d is not supported!' % self.dim)
         else:
-            raise ValueError('dim %d is not supported!' % self.dim)
+            if self.dim == 1:
+                conv = ComplexConv1d
+            elif self.dim == 2:
+                conv = ComplexConv2d
+            elif self.dim == 3:
+                conv = ComplexConv3d
+            else:
+                raise ValueError('dim %d is not supported!' % self.dim)
         return conv
 
     def get_conv_for_transform(self):
-        if self.dim == 1:
-            conv = nn.Conv1d
-        elif self.dim == 2:
-            conv = nn.Conv2d
-        elif self.dim == 3:
-            conv = nn.Conv3d
+        if not self.complex:
+            if self.dim == 1:
+                conv = nn.Conv1d
+            elif self.dim == 2:
+                conv = nn.Conv2d
+            elif self.dim == 3:
+                conv = nn.Conv3d
+            else:
+                raise ValueError('dim %d is not supported!' % self.dim)
         else:
-            raise ValueError('dim %d is not supported!' % self.dim)
+            if self.dim == 1:
+                conv = ComplexConv1d
+            elif self.dim == 2:
+                conv = ComplexConv2d
+            elif self.dim == 3:
+                conv = ComplexConv3d
+            else:
+                raise ValueError('dim %d is not supported!' % self.dim)
         return conv
 
     def forward(self, x):
