@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class SELayer(nn.Module):
-    def __init__(self, channel, reduction=16):
+    def __init__(self, channel, reduction=16, conv=None):
         super(SELayer, self).__init__()
 
         self.avg_pool = None

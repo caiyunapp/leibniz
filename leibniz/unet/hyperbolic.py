@@ -4,7 +4,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-from leibniz.unet.senet import SELayer
+from leibniz.unet.cbam import CBAM
 
 
 class BasicBlock(nn.Module):
@@ -15,13 +15,13 @@ class BasicBlock(nn.Module):
 
         self.conv1 = conv(in_channel, in_channel, kernel_size=3, stride=1, padding=1)
         self.conv2 = conv(in_channel, out_channel, kernel_size=3, stride=1, padding=1)
-        self.se = SELayer(out_channel, reduction)
+        self.cbam = CBAM(out_channel, reduction=reduction, conv=conv)
 
     def forward(self, x):
         y = self.conv1(x)
         y = self.relu(y)
         y = self.conv2(y)
-        y = self.se(y)
+        y = self.cbam(y)
         return y
 
 
@@ -34,7 +34,7 @@ class Bottleneck(nn.Module):
         self.conv1 = conv(in_channel, in_channel // 4, kernel_size=1, bias=False)
         self.conv2 = conv(in_channel // 4, in_channel // 4, kernel_size=3, bias=False, padding=1)
         self.conv3 = conv(in_channel // 4, out_channel, kernel_size=1, bias=False)
-        self.se = SELayer(out_channel, reduction)
+        self.cbam = CBAM(out_channel, reduction=reduction, conv=conv)
 
     def forward(self, x):
         y = self.conv1(x)
@@ -42,7 +42,7 @@ class Bottleneck(nn.Module):
         y = self.conv2(y)
         y = self.relu(y)
         y = self.conv3(y)
-        y = self.se(y)
+        y = self.cbam(y)
         return y
 
 

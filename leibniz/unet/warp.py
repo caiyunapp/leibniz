@@ -35,10 +35,10 @@ class BilinearWarpingScheme(nn.Module):
 
 
 class WarpLayer(nn.Module):
-    def __init__(self, channel):
+    def __init__(self, channel, conv=None):
         super(WarpLayer, self).__init__()
         self.warp = BilinearWarpingScheme()
-        self.se = SELayer(channel // 2)
+        self.se = SELayer(channel // 2, conv=conv)
 
     def forward(self, x):
         sz = x.size()
