@@ -8,6 +8,7 @@ import torch.nn as nn
 
 from leibniz.nn.dropout import ComplexDropout1d, ComplexDropout2d, ComplexDropout3d
 from leibniz.nn.normalizor import ComplexBatchNorm1d, ComplexBatchNorm2d, ComplexBatchNorm3d
+from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
 from leibniz.nn.conv import ComplexConv1d, ComplexConv2d, ComplexConv3d
 from leibniz.nn.sampling import ComplexUpsample1d, ComplexUpsample2d, ComplexUpsample3d
 from leibniz.unet.cbam import CBAM
@@ -303,15 +304,15 @@ class UNet(nn.Module):
             self.upforms = nn.ModuleList()
             self.deconvs = nn.ModuleList()
 
-            self.spatial = [spatial]
-            self.channel_sizes = [c0]
+            self.spatial = [np.array(spatial, dtype=np.int)]
+            self.channel_sizes = [np.array(c0, dtype=np.int)]
             for ix in range(layers):
                 least_factor = ex
                 scale, factor = scales[ix], factors[ix]
                 self.spatial.append(np.array(self.spatial[ix] * scale, dtype=np.int))
                 self.channel_sizes.append(np.array(self.channel_sizes[ix] * factor // least_factor * least_factor, dtype=np.int))
 
-                ci, co = self.channel_sizes[ix], self.channel_sizes[ix + 1]
+                ci, co = self.channel_sizes[ix].item(), self.channel_sizes[ix + 1].item()
                 szi, szo = self.spatial[ix + 1], self.spatial[ix]
                 logger.info('%d - ci: %d, co: %d', ix, ci, co)
                 logger.info('%d - szi: [%s], szo: [%s]', ix, ', '.join(map(str, szi)), ', '.join(map(str, szo)))
@@ -335,11 +336,11 @@ class UNet(nn.Module):
     def get_conv_for_prepare(self):
         if not self.complex:
             if self.dim == 1:
-                conv = nn.Conv1d
+                conv = DepthwiseSeparableConv1d
             elif self.dim == 2:
-                conv = nn.Conv2d
+                conv = DepthwiseSeparableConv2d
             elif self.dim == 3:
-                conv = nn.Conv3d
+                conv = DepthwiseSeparableConv3d
             else:
                 raise ValueError('dim %d is not supported!' % self.dim)
         else:
@@ -356,11 +357,11 @@ class UNet(nn.Module):
     def get_conv_for_transform(self):
         if not self.complex:
             if self.dim == 1:
-                conv = nn.Conv1d
+                conv = DepthwiseSeparableConv1d
             elif self.dim == 2:
-                conv = nn.Conv2d
+                conv = DepthwiseSeparableConv2d
             elif self.dim == 3:
-                conv = nn.Conv3d
+                conv = DepthwiseSeparableConv3d
             else:
                 raise ValueError('dim %d is not supported!' % self.dim)
         else:

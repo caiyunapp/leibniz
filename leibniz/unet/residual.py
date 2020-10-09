@@ -16,9 +16,6 @@ class Basic(th.nn.Module):
         self.conv1 = conv(dim, dim, kernel_size=3, stride=1, padding=1, groups=1, bias=False, dilation=1)
         self.conv2 = conv(dim, dim, kernel_size=3, stride=1, padding=1, groups=1, bias=False, dilation=1)
 
-        nn.init.normal_(self.conv1.weight, 0.0, 0.04)
-        nn.init.normal_(self.conv2.weight, 0.0, 0.04)
-
     def forward(self, x):
 
         y = self.conv1(x)
@@ -41,10 +38,6 @@ class Bottleneck(th.nn.Module):
         self.conv1 = conv(dim, dim // 4, kernel_size=1, bias=False)
         self.conv2 = conv(dim // 4, dim // 4, kernel_size=3, bias=False, padding=1)
         self.conv3 = conv(dim // 4, dim, kernel_size=1, bias=False)
-
-        nn.init.normal_(self.conv1.weight, 0.0, 0.04)
-        nn.init.normal_(self.conv2.weight, 0.0, 0.04)
-        nn.init.normal_(self.conv3.weight, 0.0, 0.04)
 
     def forward(self, x):
 
