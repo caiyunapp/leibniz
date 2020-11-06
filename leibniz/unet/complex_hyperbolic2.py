@@ -11,6 +11,7 @@ from leibniz.nn.activation import Sigmoid, ComplexReLU, ComplexLinear
 def exp(z):
     return 1 + 2 * th.tanh(z / 2) / (1 - th.tanh(z / 2))
 
+
 class ComplexSELayer(nn.Module):
     def __init__(self, channel, reduction=16, conv=None):
         super(ComplexSELayer, self).__init__()
