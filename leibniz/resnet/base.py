@@ -68,7 +68,13 @@ class ResNet(nn.Module):
 
             ex = extension
             c0 = int(ex * num_filters)
-            pn = int(c0 * np.cumprod(factors, axis=0)[-1] * np.cumprod(np.cumprod(scales, axis=0)[-1])[-1] * np.cumprod(spatial, axis=0)[-1])
+            accumulated_factors = np.cumprod(factors, axis=0)[-1]
+            accumulated_scales = np.cumprod(scales, axis=0)[-1]
+            if len(accumulated_scales) == 1:
+                accumulated_scales = [accumulated_scales[0] for ix in range(dim)]
+            accumulated_scales = np.cumprod(accumulated_scales, axis=0)[-1]
+            accumulated_spatial = np.cumprod(spatial, axis=0)[-1]
+            pn = int(c0 * accumulated_factors * accumulated_scales * accumulated_spatial)
 
             if padding:
                 self.conv_padding = 0
