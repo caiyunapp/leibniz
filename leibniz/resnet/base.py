@@ -114,7 +114,7 @@ class ResNet(nn.Module):
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding, complex=False), activation=True, dropout=dropout_flag, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, complex=False, conv=TConv))
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout_flag, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                     except Exception as e:
                         logger.exception(e)
