@@ -75,4 +75,4 @@ class StepwiseHypTube(nn.Module):
                 output = (output + aparam * uparam) * (1 + mparam * vparam)
             result.append(self.dec(output))
 
-        return th.cat(result, dim=1).view(-1, self.steps, self.out_channels, w, c)
+        return th.cat(result, dim=1).view(-1, self.steps, self.out_channels, w, h)
