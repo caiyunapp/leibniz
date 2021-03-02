@@ -6,11 +6,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-from leibniz.nn.dropout import ComplexDropout1d, ComplexDropout2d, ComplexDropout3d
-from leibniz.nn.normalizor import ComplexBatchNorm1d, ComplexBatchNorm2d, ComplexBatchNorm3d
 from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
-from leibniz.nn.conv import ComplexConv1d, ComplexConv2d, ComplexConv3d
-from leibniz.nn.sampling import ComplexUpsample1d, ComplexUpsample2d, ComplexUpsample3d
 from leibniz.unet.cbam import CBAM
 
 logger = logging.getLogger()
@@ -179,7 +175,7 @@ class Block(nn.Module):
         if self.dropout:
             x = self.drop(x)
 
-        x = self.attn(x)
+        x = x * self.attn(x)
 
         return x
 

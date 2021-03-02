@@ -12,26 +12,18 @@ class BilinearWarpingScheme(nn.Module):
         self.grids = {}
 
     def forward(self, im, ws):
-        b = ws.size()[0]
-        c = ws.size()[1]
-        h = ws.size()[2]
-        w = ws.size()[3]
-
-        key = '%d-%s' % (b, im.get_device())
+        b, c, h, w = im.size()
+        key = '%d-%s' % (b, im.device)
         if key not in self.grids:
-            if im.get_device() < 0:
-                g0 = th.linspace(-1, 1, h, requires_grad=False)
-                g1 = th.linspace(-1, 1, w, requires_grad=False)
-            else:
-                g0 = th.linspace(-1, 1, h, device=im.get_device(), requires_grad=False)
-                g1 = th.linspace(-1, 1, w, device=im.get_device(), requires_grad=False)
+            g0 = th.linspace(-1, 1, h, device=im.device, requires_grad=False)
+            g1 = th.linspace(-1, 1, w, device=im.device, requires_grad=False)
             grid = th.cat(th.meshgrid([g0, g1]), dim=1).reshape(1, 2, h, w)
-            self.grids[key] = grid.repeat(b * c // 2, 1, 1, 1)
+            self.grids[key] = grid.repeat(b * c, 1, 1, 1)
 
         grid = self.grids[key]
-        shift = grid.reshape(-1, 2, h, w) - ws.reshape(-1, 2, h, w)
-        shift = shift.permute(0, 2, 3, 1)
-        return F.grid_sample(im.reshape(-1, 2, h, w), shift, padding_mode=self.padding_mode, mode='bilinear').reshape(-1, c, h, w)
+        shift = grid.reshape(b * c, 2, h, w) - ws.reshape(b * c, 2, h, w)
+        shift = shift.permute(0, 2, 3, 1).view(b * c, h, w, 2)
+        return F.grid_sample(im, shift, padding_mode=self.padding_mode, mode='bilinear').reshape(b, c, h, w)
 
 
 class WarpLayer(nn.Module):
