@@ -175,7 +175,7 @@ class Block(nn.Module):
         if self.dropout:
             x = self.drop(x)
 
-        x = x * self.attn(x)
+        x = self.attn(x)
 
         return x
 
