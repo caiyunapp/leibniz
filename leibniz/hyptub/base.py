@@ -4,6 +4,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.unet import resunet
+from leibniz.unet.cbam import CBAM
 from leibniz.unet.hyperbolic import HyperBottleneck
 
 logger = logging.getLogger()
@@ -18,6 +19,8 @@ class HypTube(nn.Module):
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels
         self.out_channels = out_channels
+
+        self.cbam = CBAM(hidden_channels, conv=nn.Conv2d)
 
         self.enc = resunet(in_channels, 6 * hidden_channels, normalizor=normalizor, spatial=spatial, layers=layers, ratio=ratio,
                 vblks=vblks, hblks=hblks, scales=scales, factors=factors, block=block, relu=relu, attn=attn, final_normalized=False)
@@ -39,7 +42,7 @@ class HypTube(nn.Module):
             mparam = flow[:, :, ix, 1]
             output = (output + aparam * uparam) * (1 + mparam * vparam)
 
-        return self.dec(output)
+        return self.dec(self.cbam(output))
 
 
 class StepwiseHypTube(nn.Module):
@@ -51,6 +54,8 @@ class StepwiseHypTube(nn.Module):
         self.hidden_channels = hidden_channels
         self.out_channels = out_channels
         self.steps = steps
+
+        self.cbam = CBAM(hidden_channels, conv=nn.Conv2d)
 
         self.enc = resunet(in_channels, (4 * steps + 2) * hidden_channels, normalizor=normalizor, spatial=spatial, layers=layers, ratio=ratio,
                 vblks=vblks, hblks=hblks, scales=scales, factors=factors, block=block, relu=relu, attn=attn, final_normalized=False)
@@ -73,6 +78,6 @@ class StepwiseHypTube(nn.Module):
                 aparam = flow[:, :, jx, ix, 0]
                 mparam = flow[:, :, jx, ix, 1]
                 output = (output + aparam * uparam) * (1 + mparam * vparam)
-            result.append(self.dec(output))
+            result.append(self.dec(self.cbam(output)))
 
         return th.cat(result, dim=1).view(-1, self.steps, self.out_channels, w, c)
