@@ -92,8 +92,8 @@ class LayeredHypTube(nn.Module):
             params, uparam, vparam = flow[:, 2 * hc:], flow[:, 0:hc], flow[:, hc:2 * hc]
             params = params.view(-1, hc, 2, 2, w, h)
             for ix in range(2):
-                aparam = params[:, :, jx, ix]
-                mparam = params[:, :, jx, ix]
+                aparam = params[:, :, ix, 0]
+                mparam = params[:, :, ix, 1]
                 output = (output + aparam * uparam) * (1 + mparam * vparam)
 
         return self.dec(output)
