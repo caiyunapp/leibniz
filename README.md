@@ -64,10 +64,9 @@ pred = odeint(derivitive, fld, th.arange(0, 7, 1 / 100), method='rk4')
 ### UNet, ResUNet and variations
 
 ```python
-from leibniz.unet.base import UNet
-from leibniz.unet.hyperbolic import HyperBottleneck
+from leibniz.unet import UNet
+from leibniz.nn.layer.hyperbolic import HyperBottleneck
 from leibniz.nn.activation import CappingRelu
-
 
 unet = UNet(6, 1, normalizor='batch', spatial=(32, 64), layers=5, ratio=1,
             vblks=[4, 4, 4, 4, 4], hblks=[1, 1, 1, 1, 1],

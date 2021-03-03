@@ -4,7 +4,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-from leibniz.unet.cbam import CBAM
+from leibniz.nn.layer.cbam import CBAM
 
 
 class BasicBlock(nn.Module):

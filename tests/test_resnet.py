@@ -3,9 +3,9 @@
 import unittest
 import torch as th
 
-from leibniz.resnet import resnet
-from leibniz.unet.hyperbolic import HyperBasic
-from leibniz.unet.hyperbolic import HyperBottleneck
+from leibniz.nn.net import resnet
+from leibniz.nn.layer.hyperbolic import HyperBasic
+from leibniz.nn.layer.hyperbolic import HyperBottleneck
 
 
 class TestResNet(unittest.TestCase):

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import torch as th
-import torch.nn as nn
 
 
 class Basic(th.nn.Module):

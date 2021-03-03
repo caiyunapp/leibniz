@@ -3,11 +3,11 @@
 import unittest
 import torch as th
 
-from leibniz.unet import resunet
-from leibniz.unet.hyperbolic import HyperBasic
-from leibniz.unet.hyperbolic import HyperBottleneck
-from leibniz.unet.senet import SEBasicBlock, SEBottleneck
-from leibniz.unet.hyperbolic2 import HyperBasic as HyperBasic2, HyperBottleneck as HyperBottleneck2
+from leibniz.nn.net import resunet
+from leibniz.nn.layer.hyperbolic import HyperBasic
+from leibniz.nn.layer.hyperbolic import HyperBottleneck
+from leibniz.nn.layer.senet import SEBasicBlock, SEBottleneck
+from leibniz.nn.layer.hyperbolic2 import HyperBasic as HyperBasic2, HyperBottleneck as HyperBottleneck2
 
 
 class TestUnet(unittest.TestCase):

@@ -1,8 +1,6 @@
 import torch as th
 import torch.nn as nn
 
-from leibniz.unet.senet import SELayer
-
 
 # Originally from Kevin Trebing (HansBambel) at https://github.com/HansBambel/SmaAt-UNet/blob/master/models/layers.py
 # SmaAt-UNet: Precipitation Nowcasting using a Small Attention-UNet Architecture

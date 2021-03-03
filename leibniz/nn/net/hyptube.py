@@ -4,7 +4,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.unet import resunet
-from leibniz.unet.hyperbolic import HyperBottleneck
+from leibniz.nn.layer.hyperbolic import HyperBottleneck
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

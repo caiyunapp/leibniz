@@ -3,7 +3,7 @@
 import torch as th
 import torch.nn as nn
 
-from leibniz.unet.hyperbolic import BasicBlock, Bottleneck
+from leibniz.nn.layer.hyperbolic import BasicBlock, Bottleneck
 
 
 class HyperBasic(nn.Module):

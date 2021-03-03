@@ -7,7 +7,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
-from leibniz.unet.cbam import CBAM
+from leibniz.nn.layer.cbam import CBAM
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
