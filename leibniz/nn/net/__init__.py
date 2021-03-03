@@ -6,7 +6,7 @@ from leibniz.nn.activation import Swish
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
 from leibniz.nn.net.mlp import MLP2d
-from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LayeredHypTube
+from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 
 
 def mpl2d(in_channels, hidden_channels, out_channels):
@@ -50,5 +50,5 @@ def hyptub_stepwise(in_channels, hidden_channels, out_channels, steps, encoder=r
 
 
 def hyptub_layered(in_channels, hidden_channels, out_channels, layers, encoder=resunet, decoder=resunet, **kwargs):
-    return LayeredHypTube(in_channels, hidden_channels, out_channels, layers, encoder=encoder, decoder=decoder, **kwargs)
+    return LeveledHypTube(in_channels, hidden_channels, out_channels, layers, encoder=encoder, decoder=decoder, **kwargs)
 

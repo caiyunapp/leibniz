@@ -67,19 +67,19 @@ class StepwiseHypTube(nn.Module):
         return th.cat(result, dim=1).view(-1, self.steps, self.out_channels, w, h)
 
 
-class LayeredHypTube(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, layers, encoder, decoder, **kwargs):
+class LeveledHypTube(nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, levels, encoder, decoder, **kwargs):
         super().__init__()
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels
         self.out_channels = out_channels
-        self.layers = layers
+        self.levels = levels
 
         self.enc = encoder(in_channels, 6 * hidden_channels, **kwargs)
         self.dec = decoder(hidden_channels, out_channels, **kwargs)
-        self.layered = nn.ModuleList()
-        for ix in range(layers):
-            self.layered.append(MLP2d(6 * hidden_channels, 6 * hidden_channels))
+        self.leveled = nn.ModuleList()
+        for ix in range(levels):
+            self.leveled.append(MLP2d(6 * hidden_channels, 6 * hidden_channels))
 
     def forward(self, input):
         b, c, w, h = input.size()
@@ -87,8 +87,8 @@ class LayeredHypTube(nn.Module):
 
         flow = self.enc(input)
         output = th.zeros(b, hc, w, h, device=input.device)
-        for jx in range(self.layers):
-            flow = self.layered[jx](flow)
+        for jx in range(self.levels):
+            flow = self.leveled[jx](flow)
             params, uparam, vparam = flow[:, 2 * hc:], flow[:, 0:hc], flow[:, hc:2 * hc]
             params = params.view(-1, hc, 2, 2, w, h)
             for ix in range(2):

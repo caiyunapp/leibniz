@@ -4,7 +4,7 @@ import unittest
 import torch as th
 
 from leibniz.nn.net import hyptub, resunet
-from leibniz.nn.net.hyptube import StepwiseHypTube, LayeredHypTube
+from leibniz.nn.net.hyptube import StepwiseHypTube, LeveledHypTube
 
 
 class TestHyptub(unittest.TestCase):
@@ -48,17 +48,17 @@ class TestHyptub(unittest.TestCase):
         net(th.rand(1, 1, 32, 64))
 
     def testLayered2D(self):
-        LayeredHypTube(1, 1, 1, 2, spatial=(16, 16), encoder=resunet, decoder=resunet)
-        LayeredHypTube(1, 1, 1, 2, spatial=(16, 32), encoder=resunet, decoder=resunet)
-        LayeredHypTube(1, 1, 1, 2, spatial=(32, 16), encoder=resunet, decoder=resunet)
-        net = LayeredHypTube(1, 1, 1, 2, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], encoder=resunet, decoder=resunet)
+        LeveledHypTube(1, 1, 1, 2, spatial=(16, 16), encoder=resunet, decoder=resunet)
+        LeveledHypTube(1, 1, 1, 2, spatial=(16, 32), encoder=resunet, decoder=resunet)
+        LeveledHypTube(1, 1, 1, 2, spatial=(32, 16), encoder=resunet, decoder=resunet)
+        net = LeveledHypTube(1, 1, 1, 2, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], encoder=resunet, decoder=resunet)
         net(th.rand(1, 1, 32, 16))
-        net = LayeredHypTube(1, 1, 1, 2, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], encoder=resunet, decoder=resunet, normalizor='instance')
+        net = LeveledHypTube(1, 1, 1, 2, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], encoder=resunet, decoder=resunet, normalizor='instance')
         net(th.rand(1, 1, 32, 16))
-        net = LayeredHypTube(1, 1, 1, 2, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], encoder=resunet, decoder=resunet, normalizor='layer')
+        net = LeveledHypTube(1, 1, 1, 2, spatial=(32, 16), scales=[[0, -1], [0, -1], [0, -1], [0, -1]], encoder=resunet, decoder=resunet, normalizor='layer')
         net(th.rand(1, 1, 32, 16))
         net(th.rand(2, 1, 32, 16))
-        net = LayeredHypTube(1, 1, 1, 2, spatial=(32, 64), encoder=resunet, decoder=resunet)
+        net = LeveledHypTube(1, 1, 1, 2, spatial=(32, 64), encoder=resunet, decoder=resunet)
         net(th.rand(1, 1, 32, 64))
-        net = LayeredHypTube(1, 1, 1, 2, spatial=(32, 64), encoder=resunet, decoder=resunet)
+        net = LeveledHypTube(1, 1, 1, 2, spatial=(32, 64), encoder=resunet, decoder=resunet)
         net(th.rand(1, 1, 32, 64))
