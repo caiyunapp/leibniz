@@ -3,27 +3,22 @@ import logging
 import torch as th
 import torch.nn as nn
 
-from leibniz.unet import resunet
-from leibniz.nn.layer.hyperbolic import HyperBottleneck
+from leibniz.nn.net import resunet
+from leibniz.nn.net.mlp import MLP2d
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
 class HypTube(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, block=HyperBottleneck, relu=nn.ReLU(inplace=True), attn=None, normalizor='batch',
-                 layers=4, ratio=-2, spatial=(256, 256), vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1], scales=[-2, -2, -2, -2], factors=[1, 1, 1, 1],
-                 final_normalized=False):
+    def __init__(self, in_channels, hidden_channels, out_channels, encoder=resunet, decoder=resunet, **kwargs):
         super().__init__()
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels
         self.out_channels = out_channels
 
-        self.enc = resunet(in_channels, 6 * hidden_channels, normalizor=normalizor, spatial=spatial, layers=layers, ratio=ratio,
-                vblks=vblks, hblks=hblks, scales=scales, factors=factors, block=block, relu=relu, attn=attn, final_normalized=False)
-
-        self.dec = resunet(hidden_channels, out_channels, normalizor=normalizor, spatial=spatial, layers=layers, ratio=ratio,
-                vblks=vblks, hblks=hblks, scales=scales, factors=factors, block=block, relu=relu, attn=attn, final_normalized=final_normalized)
+        self.enc = encoder(in_channels, 6 * hidden_channels, **kwargs)
+        self.dec = decoder(hidden_channels, out_channels, **kwargs)
 
     def forward(self, input):
         b, c, w, h = input.size()
@@ -43,20 +38,15 @@ class HypTube(nn.Module):
 
 
 class StepwiseHypTube(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, steps, block=HyperBottleneck, relu=nn.ReLU(inplace=True), attn=None, normalizor='batch',
-                 layers=4, ratio=-2, spatial=(256, 256), vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1], scales=[-2, -2, -2, -2], factors=[1, 1, 1, 1],
-                 final_normalized=False):
+    def __init__(self, in_channels, hidden_channels, out_channels, steps, encoder=resunet, decoder=resunet, **kwargs):
         super().__init__()
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels
         self.out_channels = out_channels
         self.steps = steps
 
-        self.enc = resunet(in_channels, (4 * steps + 2) * hidden_channels, normalizor=normalizor, spatial=spatial, layers=layers, ratio=ratio,
-                vblks=vblks, hblks=hblks, scales=scales, factors=factors, block=block, relu=relu, attn=attn, final_normalized=False)
-
-        self.dec = resunet(hidden_channels, out_channels, normalizor=normalizor, spatial=spatial, layers=layers, ratio=ratio,
-                vblks=vblks, hblks=hblks, scales=scales, factors=factors, block=block, relu=relu, attn=attn, final_normalized=final_normalized)
+        self.enc = encoder(in_channels, (4 * steps + 2) * hidden_channels, **kwargs)
+        self.dec = decoder(hidden_channels, out_channels, **kwargs)
 
     def forward(self, input):
         b, c, w, h = input.size()
@@ -76,3 +66,35 @@ class StepwiseHypTube(nn.Module):
             result.append(self.dec(output))
 
         return th.cat(result, dim=1).view(-1, self.steps, self.out_channels, w, h)
+
+
+class LayeredHypTube(nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, layers, encoder=resunet, decoder=resunet, **kwargs):
+        super().__init__()
+        self.in_channels = in_channels
+        self.hidden_channels = hidden_channels
+        self.out_channels = out_channels
+        self.layers = layers
+
+        self.enc = encoder(in_channels, 6 * hidden_channels, **kwargs)
+        self.dec = decoder(hidden_channels, out_channels, **kwargs)
+        self.layered = nn.ModuleList()
+        for ix in range(layers):
+            self.layered.append(MLP2d(6 * hidden_channels, 6 * hidden_channels))
+
+    def forward(self, input):
+        b, c, w, h = input.size()
+        hc = self.hidden_channels
+
+        flow = self.enc(input)
+        for jx in range(self.layers):
+            flow = self.layered[jx](flow)
+            flow, uparam, vparam = flow[:, 2 * hc:], flow[:, 0:hc], flow[:, hc:2 * hc]
+            flow = flow.view(-1, hc, 2, w, h)
+            output = th.zeros(b, hc, w, h, device=input.device)
+            for ix in range(2):
+                aparam = flow[:, :, jx, ix, 0]
+                mparam = flow[:, :, jx, ix, 1]
+                output = (output + aparam * uparam) * (1 + mparam * vparam)
+
+        return self.dec(output)
