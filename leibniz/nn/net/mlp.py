@@ -2,8 +2,9 @@ import torch.nn as nn
 
 
 class MLP1d(nn.Module):
-    def __init__(self, channels_in, channels_hidden, channels_out):
-        super(MLP, self).__init__()
+    def __init__(self, channels_in, channels_out):
+        super(MLP1d, self).__init__()
+        channels_hidden = channels_in + channels_out
         self.layers = nn.Sequential(
             nn.Linear(channels_in, channels_hidden),
             nn.ReLU(),
@@ -17,8 +18,9 @@ class MLP1d(nn.Module):
 
 
 class MLP2d(nn.Module):
-    def __init__(self, channels_in, channels_hidden, channels_out):
-        super(MLP, self).__init__()
+    def __init__(self, channels_in, channels_out):
+        super(MLP2d, self).__init__()
+        channels_hidden = channels_in + channels_out
         self.layers = nn.Sequential(
             nn.Conv2d(channels_in, channels_hidden, kernel_size=7, padding=3),
             nn.ReLU(),
@@ -26,6 +28,5 @@ class MLP2d(nn.Module):
         )
 
     def forward(self, x):
-        x = x.view(x.size(0), -1)
         x = self.layers(x)
         return x

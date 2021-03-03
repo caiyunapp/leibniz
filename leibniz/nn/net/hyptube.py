@@ -3,7 +3,6 @@ import logging
 import torch as th
 import torch.nn as nn
 
-from leibniz.nn.net import resunet
 from leibniz.nn.net.mlp import MLP2d
 
 logger = logging.getLogger()
@@ -11,7 +10,7 @@ logger.setLevel(logging.INFO)
 
 
 class HypTube(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, encoder=resunet, decoder=resunet, **kwargs):
+    def __init__(self, in_channels, hidden_channels, out_channels, encoder, decoder, **kwargs):
         super().__init__()
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels
@@ -38,7 +37,7 @@ class HypTube(nn.Module):
 
 
 class StepwiseHypTube(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, steps, encoder=resunet, decoder=resunet, **kwargs):
+    def __init__(self, in_channels, hidden_channels, out_channels, steps, encoder, decoder, **kwargs):
         super().__init__()
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels
@@ -69,7 +68,7 @@ class StepwiseHypTube(nn.Module):
 
 
 class LayeredHypTube(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, layers, encoder=resunet, decoder=resunet, **kwargs):
+    def __init__(self, in_channels, hidden_channels, out_channels, layers, encoder, decoder, **kwargs):
         super().__init__()
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels
@@ -87,14 +86,14 @@ class LayeredHypTube(nn.Module):
         hc = self.hidden_channels
 
         flow = self.enc(input)
+        output = th.zeros(b, hc, w, h, device=input.device)
         for jx in range(self.layers):
             flow = self.layered[jx](flow)
-            flow, uparam, vparam = flow[:, 2 * hc:], flow[:, 0:hc], flow[:, hc:2 * hc]
-            flow = flow.view(-1, hc, 2, w, h)
-            output = th.zeros(b, hc, w, h, device=input.device)
+            params, uparam, vparam = flow[:, 2 * hc:], flow[:, 0:hc], flow[:, hc:2 * hc]
+            params = params.view(-1, hc, 2, 2, w, h)
             for ix in range(2):
-                aparam = flow[:, :, jx, ix, 0]
-                mparam = flow[:, :, jx, ix, 1]
+                aparam = params[:, :, jx, ix]
+                mparam = params[:, :, jx, ix]
                 output = (output + aparam * uparam) * (1 + mparam * vparam)
 
         return self.dec(output)

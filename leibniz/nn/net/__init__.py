@@ -5,6 +5,12 @@ from leibniz.nn.activation import Swish
 
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
+from nn.net.mlp import MLP2d
+from nn.net.hyptube import HypTube, StepwiseHypTube, LayeredHypTube
+
+
+def mpl2d(in_channels, hidden_channels, out_channels):
+    return MLP2d(in_channels, hidden_channels, out_channels)
 
 
 def unet4(in_channels, out_channels, spatial=(256, 256)):
@@ -33,3 +39,16 @@ def resnet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, laye
                  spatial=(256, 256), normalizor='batch'):
     return ResNet(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio,
                  vblks=vblks, scales=scales, factors=factors, spatial=spatial, normalizor=normalizor)
+
+
+def hyptub(in_channels, hidden_channels, out_channels, encoder=resunet, decoder=resunet, **kwargs):
+    return HypTube(in_channels, hidden_channels, out_channels, encoder=encoder, decoder=decoder, **kwargs)
+
+
+def hyptub_stepwise(in_channels, hidden_channels, out_channels, steps, encoder=resunet, decoder=resunet, **kwargs):
+    return StepwiseHypTube(in_channels, hidden_channels, out_channels, steps, encoder=encoder, decoder=decoder, **kwargs)
+
+
+def hyptub_layered(in_channels, hidden_channels, out_channels, layers, encoder=resunet, decoder=resunet, **kwargs):
+    return LayeredHypTube(in_channels, hidden_channels, out_channels, layers, encoder=encoder, decoder=decoder, **kwargs)
+
