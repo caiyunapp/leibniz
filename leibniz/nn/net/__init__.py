@@ -6,7 +6,8 @@ from leibniz.nn.activation import Swish
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
 from leibniz.nn.net.mlp import MLP2d
-from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
+from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube, MixedHypTube
+from leibniz.nn.net.conv_lstm import ConvLSTM
 
 
 def mpl2d(in_channels, hidden_channels, out_channels):
@@ -49,6 +50,21 @@ def hyptub_stepwise(in_channels, hidden_channels, out_channels, steps, encoder=r
     return StepwiseHypTube(in_channels, hidden_channels, out_channels, steps, encoder=encoder, decoder=decoder, **kwargs)
 
 
-def hyptub_layered(in_channels, hidden_channels, out_channels, layers, encoder=resunet, decoder=resunet, **kwargs):
-    return LeveledHypTube(in_channels, hidden_channels, out_channels, layers, encoder=encoder, decoder=decoder, **kwargs)
+def hyptub_leveled(in_channels, hidden_channels, out_channels, levels, encoder=resunet, decoder=resunet, **kwargs):
+    return LeveledHypTube(in_channels, hidden_channels, out_channels, levels, encoder=encoder, decoder=decoder, **kwargs)
 
+
+def lstm(input_dim, hidden_dim, kernel_size, num_layers=1, batch_first=True, bias=True, return_all_layers=False):
+    return ConvLSTM(
+        input_dim=input_dim,
+        hidden_dim=hidden_dim,
+        kernel_size=kernel_size,
+        num_layers=num_layers,
+        batch_first=batch_first,
+        bias=bias,
+        return_all_layers=return_all_layers
+    )
+
+
+def hyptub_mixed(in_channels, hidden_channels, out_channels, steps, encoder=resunet, decoder=resunet, stepwise=lstm, **kwargs):
+    return MixedHypTube(in_channels, hidden_channels, out_channels, steps, encoder=encoder, decoder=decoder, stepwise=stepwise, **kwargs)
