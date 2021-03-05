@@ -6,7 +6,7 @@ from leibniz.nn.activation import Swish
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
 from leibniz.nn.net.mlp import MLP2d
-from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube, MixedHypTube
+from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
 
 
@@ -64,7 +64,3 @@ def lstm(input_dim, hidden_dim, kernel_size, num_layers=1, batch_first=True, bia
         bias=bias,
         return_all_layers=return_all_layers
     )
-
-
-def hyptub_mixed(in_channels, hidden_channels, out_channels, steps, encoder=resunet, decoder=resunet, stepwise=lstm, **kwargs):
-    return MixedHypTube(in_channels, hidden_channels, out_channels, steps, encoder=encoder, decoder=decoder, stepwise=stepwise, **kwargs)
