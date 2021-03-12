@@ -11,7 +11,7 @@ from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
 
 
-def identical():
+def identical(*args, **kwargs):
     return Identity()
 
 
