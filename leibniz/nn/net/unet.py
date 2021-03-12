@@ -181,7 +181,7 @@ class Block(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2,
+    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, enhencer=None,
                  vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
@@ -228,6 +228,7 @@ class UNet(nn.Module):
             self.in_channels = in_channels
             self.num_filters = num_filters
             self.out_channels = out_channels
+            self.enhencer = enhencer
 
             if relu is None:
                 relu = nn.ReLU(inplace=True)
@@ -254,6 +255,7 @@ class UNet(nn.Module):
 
             if final_normalized:
                 self.relu6 = nn.ReLU6()
+
 
             self.enconvs = nn.ModuleList()
             self.dnforms = nn.ModuleList()
@@ -323,7 +325,11 @@ class UNet(nn.Module):
             hzt, _ = self.hzforms[ix](enc)
             hzts.append(hzt)
 
-        upt = dnt
+        if self.enhencer is None:
+            upt = dnt
+        else:
+            upt = self.enhencer(dnt)
+
         for ix in range(self.layers - 1, -1, -1):
             hzt = hzts[ix]
             upt, dec = self.upforms[ix](self.deconvs[ix](upt, hzt))

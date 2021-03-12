@@ -5,9 +5,14 @@ from leibniz.nn.activation import Swish
 
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
+from leibniz.nn.net.identity import Identity
 from leibniz.nn.net.mlp import MLP2d
 from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
+
+
+def identical():
+    return Identity()
 
 
 def mpl2d(in_channels, hidden_channels, out_channels):
@@ -29,10 +34,10 @@ def unet8(in_channels, out_channels, spatial=(256, 256)):
 def resunet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, layers=4, ratio=0,
                  vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
                  scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=(256, 256), normalizor='batch',
-                 final_normalized=False):
+                 enhencer=None, final_normalized=False):
     return UNet(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio,
                  vblks=vblks, hblks=hblks, scales=scales, factors=factors, spatial=spatial, normalizor=normalizor,
-                 final_normalized=final_normalized)
+                enhencer=enhencer, final_normalized=final_normalized)
 
 
 def resnet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, layers=4, ratio=0,
