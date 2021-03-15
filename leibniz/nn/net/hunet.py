@@ -334,7 +334,7 @@ class HUNet(nn.Module):
         hzts = []
         for ix in range(self.layers):
             dnt, enc = self.dnforms[ix](self.enconvs[ix](dnt))
-            hzt, _ = self.hzforms[ix](enc)
+            hzt = self.hzforms[ix](enc)
             hzts.append(hzt)
 
         upt = self.enhencer(dnt)
