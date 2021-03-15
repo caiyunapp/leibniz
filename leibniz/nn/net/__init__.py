@@ -5,14 +5,20 @@ from leibniz.nn.activation import Swish
 
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
-from leibniz.nn.net.identity import Identity
+from nn.net.simple import Identity
 from leibniz.nn.net.mlp import MLP2d
 from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
+from leibniz.nn.net.simple import Linear, Identity
+from leibniz.nn.net.hunet import HUNet
 
 
 def identical(*args, **kwargs):
     return Identity()
+
+
+def linear(in_channels, out_channels, **kwargs):
+    return Linear(in_channels, out_channels, **kwargs)
 
 
 def mpl2d(in_channels, hidden_channels, out_channels):
@@ -69,3 +75,10 @@ def lstm(input_dim, hidden_dim, kernel_size, num_layers=1, batch_first=True, bia
         bias=bias,
         return_all_layers=return_all_layers
     )
+
+
+def hunet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, layers=4, ratio=0,
+                 vblks=[1, 1, 1, 1], scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1],
+                 spatial=(256, 256), normalizor='batch'):
+    return HUNet(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio,
+                 vblks=vblks, scales=scales, factors=factors, spatial=spatial, normalizor=normalizor)
