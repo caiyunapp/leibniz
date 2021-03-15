@@ -194,8 +194,8 @@ class Block(nn.Module):
 
 
 class HUNet(nn.Module):
-    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, enhencer=None,
-                 vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
+    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2,
+                 vblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
         extension = block.extension
@@ -223,14 +223,12 @@ class HUNet(nn.Module):
 
         self.final_normalized = final_normalized
         self.ratio = ratio
-        self.hblks = hblks
         self.vblks = vblks
         self.scales = scales
         self.factors = factors
         logger.info('---------------------------------------')
         logger.info('ratio: %f', ratio)
         logger.info('vblks: [%s]', ', '.join(map(str, vblks)))
-        logger.info('hblks: [%s]', ', '.join(map(str, hblks)))
         logger.info('scales: [%s]', ', '.join(map(str, scales)))
         logger.info('factors: [%s]', ', '.join(map(str, factors[0:4])))
         logger.info('---------------------------------------')
@@ -241,7 +239,6 @@ class HUNet(nn.Module):
             self.in_channels = in_channels
             self.num_filters = num_filters
             self.out_channels = out_channels
-            self.enhencer = enhencer
 
             if relu is None:
                 relu = nn.ReLU(inplace=True)
@@ -305,6 +302,8 @@ class HUNet(nn.Module):
                     logger.error('scales are exceeded!')
                     raise ValueError('scales exceeded!')
 
+            self.enhencer = Tube(co, co)
+
     def get_conv_for_prepare(self):
         if self.dim == 1:
             conv = DepthwiseSeparableConv1d
@@ -338,10 +337,7 @@ class HUNet(nn.Module):
             hzt, _ = self.hzforms[ix](enc)
             hzts.append(hzt)
 
-        if self.enhencer is None:
-            upt = dnt
-        else:
-            upt = self.enhencer(dnt)
+        upt = self.enhencer(dnt)
 
         for ix in range(self.layers - 1, -1, -1):
             hzt = hzts[ix]
