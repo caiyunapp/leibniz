@@ -5,7 +5,6 @@ from leibniz.nn.activation import Swish
 
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
-from nn.net.simple import Identity
 from leibniz.nn.net.mlp import MLP2d
 from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
