@@ -3,6 +3,7 @@ import logging
 import torch as th
 import torch.nn as nn
 
+from leibniz.nn.net.simple import Linear
 from leibniz.nn.net.mlp import MLP2d
 
 logger = logging.getLogger()
@@ -10,7 +11,7 @@ logger.setLevel(logging.INFO)
 
 
 class HypTube(nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels, encoder, decoder, **kwargs):
+    def __init__(self, in_channels, hidden_channels, out_channels, encoder=Linear, decoder=Linear, **kwargs):
         super().__init__()
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels

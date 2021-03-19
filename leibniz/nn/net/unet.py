@@ -8,6 +8,7 @@ import torch.nn as nn
 
 from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
 from leibniz.nn.layer.cbam import CBAM
+from leibniz.nn.net.hyptube import HypTube
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -228,7 +229,10 @@ class UNet(nn.Module):
             self.in_channels = in_channels
             self.num_filters = num_filters
             self.out_channels = out_channels
-            self.enhencer = enhencer
+
+            self.enhencer = None
+            if isinstance(enhencer, type) and callable(enhencer):
+                self.enhencer = enhencer
 
             if relu is None:
                 relu = nn.ReLU(inplace=True)
@@ -291,6 +295,9 @@ class UNet(nn.Module):
                 else:
                     logger.error('scales are exceeded!')
                     raise ValueError('scales exceeded!')
+
+                if self.enhencer is None:
+                    self.enhencer = HypTube(co, co // 2, co)
 
     def get_conv_for_prepare(self):
         if self.dim == 1:
