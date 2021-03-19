@@ -280,6 +280,7 @@ class UNet(nn.Module):
                 logger.info('%d - szi: [%s], szo: [%s]', ix, ', '.join(map(str, szi)), ', '.join(map(str, szo)))
 
                 self.exceeded = self.exceeded or ci < lrd or co < lrd or szi.min() < 1 or szo.min() < 1
+                self.exceeded = self.exceeded or co > 4096
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
