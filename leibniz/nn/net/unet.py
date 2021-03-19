@@ -260,7 +260,6 @@ class UNet(nn.Module):
             if final_normalized:
                 self.relu6 = nn.ReLU6()
 
-
             self.enconvs = nn.ModuleList()
             self.dnforms = nn.ModuleList()
             self.hzforms = nn.ModuleList()
@@ -296,8 +295,8 @@ class UNet(nn.Module):
                     logger.error('scales are exceeded!')
                     raise ValueError('scales exceeded!')
 
-                if self.enhencer is None:
-                    self.enhencer = HypTube(co, co // 2, co)
+            if self.enhencer is None and self.dim == 2:
+                self.enhencer = HypTube(co, co // 2, co)
 
     def get_conv_for_prepare(self):
         if self.dim == 1:
