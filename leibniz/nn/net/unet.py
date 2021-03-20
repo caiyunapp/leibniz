@@ -230,9 +230,12 @@ class UNet(nn.Module):
             self.num_filters = num_filters
             self.out_channels = out_channels
 
-            self.enhencer = None
-            if isinstance(enhencer, type) and callable(enhencer):
-                self.enhencer = enhencer
+            if enhencer is None:
+                if self.dim == 2:
+                    enhencer = HypTube
+            self.enhencer_in = None
+            self.enhencer_out = None
+            self.enhencer_mid = None
 
             if relu is None:
                 relu = nn.ReLU(inplace=True)
@@ -296,8 +299,10 @@ class UNet(nn.Module):
                     logger.error('scales are exceeded!')
                     raise ValueError('scales exceeded!')
 
-            if self.enhencer is None and self.dim == 2:
-                self.enhencer = HypTube(co, co // 2, co)
+            if self.dim == 2 and enhencer is not None:
+                self.enhencer_in = enhencer(c0, (c0 + 1) // 2, c0)
+                self.enhencer_out = enhencer(c0, (c0 + 1) // 2, c0)
+                self.enhencer_mid = enhencer(co, (c0 + 1) // 2, co)
 
     def get_conv_for_prepare(self):
         if self.dim == 1:
@@ -326,20 +331,26 @@ class UNet(nn.Module):
             raise ValueError('scales exceeded!')
 
         dnt = self.iconv(x)
+        if self.enhencer_in is not None:
+            dnt = self.enhencer_in(dnt)
+
         hzts = []
         for ix in range(self.layers):
             dnt, enc = self.dnforms[ix](self.enconvs[ix](dnt))
             hzt, _ = self.hzforms[ix](enc)
             hzts.append(hzt)
 
-        if self.enhencer is None:
+        if self.enhencer_mid is None:
             upt = dnt
         else:
-            upt = self.enhencer(dnt)
+            upt = self.enhencer_mid(dnt)
 
         for ix in range(self.layers - 1, -1, -1):
             hzt = hzts[ix]
             upt, dec = self.upforms[ix](self.deconvs[ix](upt, hzt))
+
+        if self.enhencer_out is not None:
+            upt = self.enhencer_out(upt)
 
         if self.final_normalized:
             return self.relu6(self.oconv(upt)) / 6
