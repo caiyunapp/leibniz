@@ -4,7 +4,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.nn.net.simple import Linear
-from leibniz.nn.net.mlp import MLP2d
+from leibniz.nn.net import MLP2d
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

@@ -16,17 +16,3 @@ class MLP1d(nn.Module):
         x = self.layers(x)
         return x
 
-
-class MLP2d(nn.Module):
-    def __init__(self, channels_in, channels_out):
-        super(MLP2d, self).__init__()
-        channels_hidden = channels_in + channels_out
-        self.layers = nn.Sequential(
-            nn.Conv2d(channels_in, channels_hidden, kernel_size=7, padding=3),
-            nn.ReLU(),
-            nn.Conv2d(channels_hidden, channels_out, kernel_size=3, padding=1),
-        )
-
-    def forward(self, x):
-        x = self.layers(x)
-        return x

@@ -5,10 +5,9 @@ from leibniz.nn.activation import Swish
 
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
-from leibniz.nn.net.mlp import MLP2d
 from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
-from leibniz.nn.net.simple import Linear, Identity
+from leibniz.nn.net.simple import Linear, Identity, MLP2d
 from leibniz.nn.net.hunet import HUNet
 
 
@@ -20,29 +19,29 @@ def linear(in_channels, out_channels, **kwargs):
     return Linear(in_channels, out_channels, **kwargs)
 
 
-def mpl2d(in_channels, hidden_channels, out_channels):
-    return MLP2d(in_channels, hidden_channels, out_channels)
+def cnn2d(in_channels, hidden_channels, out_channels):
+    return cnn2d(in_channels, hidden_channels, out_channels)
 
 
-def unet4(in_channels, out_channels, spatial=(256, 256)):
-    return UNet(in_channels, out_channels, block=None, relu=Swish(), attn=None, layers=4, ratio=0,
+def unet4(in_channels, out_channels, spatial=(256, 256), ksize_in=7, dropout=0.1):
+    return UNet(in_channels, out_channels, block=None, relu=Swish(), attn=None, layers=4, ratio=0, ksize_in=ksize_in, dropout=dropout,
                  vblks=[0, 0, 0, 0], hblks=[0, 0, 0, 0],
                  scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=spatial)
 
 
-def unet8(in_channels, out_channels, spatial=(256, 256)):
-    return UNet(in_channels, out_channels, block=None, relu=Swish(), attn=None, layers=8, ratio=0,
+def unet8(in_channels, out_channels, spatial=(256, 256), ksize_in=7, dropout=0.1):
+    return UNet(in_channels, out_channels, block=None, relu=Swish(), attn=None, layers=8, ratio=0, ksize_in=ksize_in, dropout=dropout,
                  vblks=[0, 0, 0, 0, 0, 0, 0, 0], hblks=[0, 0, 0, 0, 0, 0, 0, 0],
                  scales=[-1, -1, -1, -1, -1, -1, -1, -1], factors=[1, 1, 1, 1, 1, 1, 1, 1], spatial=spatial)
 
 
-def resunet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, layers=4, ratio=0,
+def resunet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, layers=4, ratio=0, ksize_in=7, dropout=0.1,
                  vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
                  scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=(256, 256), normalizor='batch',
                  enhencer=None, final_normalized=False):
-    return UNet(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio,
+    return UNet(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio, ksize_in=ksize_in, dropout=dropout,
                  vblks=vblks, hblks=hblks, scales=scales, factors=factors, spatial=spatial, normalizor=normalizor,
-                enhencer=enhencer, final_normalized=final_normalized)
+                 enhencer=enhencer, final_normalized=final_normalized)
 
 
 def resnet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, layers=4, ratio=0,

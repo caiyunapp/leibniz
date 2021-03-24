@@ -1,4 +1,5 @@
 import torch.nn as nn
+from torch import nn as nn
 
 
 class Identity(nn.Module):
@@ -18,3 +19,18 @@ class Linear(nn.Module):
 
     def forward(self, x):
         return self.conv(x)
+
+
+class CNN2d(nn.Module):
+    def __init__(self, channels_in, channels_out):
+        super(CNN2d, self).__init__()
+        channels_hidden = channels_in + channels_out
+        self.layers = nn.Sequential(
+            nn.Conv2d(channels_in, channels_hidden, kernel_size=7, padding=3),
+            nn.ReLU(),
+            nn.Conv2d(channels_hidden, channels_out, kernel_size=3, padding=1),
+        )
+
+    def forward(self, x):
+        x = self.layers(x)
+        return x

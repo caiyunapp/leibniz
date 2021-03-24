@@ -119,7 +119,7 @@ class Block(nn.Module):
 
         super(Block, self).__init__()
         self.activation = activation
-        self.dropout = dropout
+        self.dropout_flag = dropout > 0
         self.blocks = None
 
         self.transform = transform
@@ -152,13 +152,13 @@ class Block(nn.Module):
         elif normalizor == 'layer':
             self.normalizor = nn.LayerNorm(tuple([transform.out_channels]) + tuple(transform.size))
 
-        if self.dropout:
+        if self.dropout_flag:
             if dim == 1:
-                self.drop = nn.Dropout(p=0.5)
+                self.drop = nn.Dropout(p=dropout)
             elif dim == 2:
-                self.drop = nn.Dropout2d(p=0.5)
+                self.drop = nn.Dropout2d(p=dropout)
             elif dim == 3:
-                self.drop = nn.Dropout3d(p=0.5)
+                self.drop = nn.Dropout3d(p=dropout)
 
 
     def forward(self, *xs):
@@ -173,7 +173,7 @@ class Block(nn.Module):
         if self.normalizor:
             x = self.normalizor(x)
 
-        if self.dropout:
+        if self.dropout_flag:
             x = self.drop(x)
 
         x = self.attn(x)
@@ -182,7 +182,7 @@ class Block(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, enhencer=None,
+    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, enhencer=None, ksize_in=7, dropout=0.1,
                  vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
@@ -249,7 +249,7 @@ class UNet(nn.Module):
                 self.conv_padding = 0
                 self.iconv = nn.Sequential(
                     padding,
-                    Conv(in_channels, c0, kernel_size=3, padding=self.conv_padding, groups=1),
+                    Conv(in_channels, c0, kernel_size=ksize_in, padding=(ksize_in - 1) // 2, groups=1),
                 )
                 self.oconv = nn.Sequential(
                     padding,
@@ -257,7 +257,7 @@ class UNet(nn.Module):
                 )
             else:
                 self.conv_padding = 1
-                self.iconv = Conv(in_channels, c0, kernel_size=3, padding=self.conv_padding, groups=1)
+                self.iconv = Conv(in_channels, c0, kernel_size=5, padding=2, groups=1)
                 self.oconv = Conv(c0, out_channels, kernel_size=3, padding=self.conv_padding, bias=False, groups=1)
 
             if final_normalized:
@@ -287,6 +287,7 @@ class UNet(nn.Module):
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
+                        dropout = dropout if dropout_flag else -1
                         self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout_flag, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=TConv))
