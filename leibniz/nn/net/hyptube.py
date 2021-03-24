@@ -3,8 +3,7 @@ import logging
 import torch as th
 import torch.nn as nn
 
-from leibniz.nn.net.simple import Linear
-from leibniz.nn.net import MLP2d
+from leibniz.nn.net.simple import Linear, SimpleCNN2d
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -80,7 +79,7 @@ class LeveledHypTube(nn.Module):
         self.dec = decoder(hidden_channels, out_channels, **kwargs)
         self.leveled = nn.ModuleList()
         for ix in range(levels):
-            self.leveled.append(MLP2d(6 * hidden_channels, 6 * hidden_channels))
+            self.leveled.append(SimpleCNN2d(6 * hidden_channels, 6 * hidden_channels))
 
     def forward(self, input):
         b, c, w, h = input.size()

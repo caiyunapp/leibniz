@@ -7,7 +7,7 @@ from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.resnet import ResNet
 from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
-from leibniz.nn.net.simple import Linear, Identity, MLP2d
+from leibniz.nn.net.simple import Linear, Identity, SimpleCNN2d
 from leibniz.nn.net.hunet import HUNet
 
 
@@ -19,8 +19,8 @@ def linear(in_channels, out_channels, **kwargs):
     return Linear(in_channels, out_channels, **kwargs)
 
 
-def cnn2d(in_channels, hidden_channels, out_channels):
-    return cnn2d(in_channels, hidden_channels, out_channels)
+def cnn2d(in_channels, out_channels):
+    return SimpleCNN2d(in_channels, out_channels)
 
 
 def unet4(in_channels, out_channels, spatial=(256, 256), ksize_in=7, dropout=0.1):

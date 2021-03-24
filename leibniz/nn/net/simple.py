@@ -21,9 +21,9 @@ class Linear(nn.Module):
         return self.conv(x)
 
 
-class CNN2d(nn.Module):
+class SimpleCNN2d(nn.Module):
     def __init__(self, channels_in, channels_out):
-        super(CNN2d, self).__init__()
+        super(SimpleCNN2d, self).__init__()
         channels_hidden = channels_in + channels_out
         self.layers = nn.Sequential(
             nn.Conv2d(channels_in, channels_hidden, kernel_size=7, padding=3),
