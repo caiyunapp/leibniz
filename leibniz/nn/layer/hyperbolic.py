@@ -67,7 +67,7 @@ class HyperBasic(nn.Module):
         y4 = (1 - ss) * x - cs
 
         ys = th.cat((y1, y2, y3, y4, cs, ss, x), dim=1)
-        return self.output(ys)
+        return x + self.output(ys)
 
 
 class HyperBottleneck(nn.Module):
@@ -91,4 +91,4 @@ class HyperBottleneck(nn.Module):
         y4 = (1 - ss) * x - cs
 
         ys = th.cat((y1, y2, y3, y4, cs, ss, x), dim=1)
-        return self.output(ys)
+        return x + self.output(ys)
