@@ -300,12 +300,12 @@ class UNet(nn.Module):
                     raise ValueError('scales exceeded!')
 
             if self.dim == 2 and enhencer is not None:
-                from leibniz.nn.layer.hyperbolic import BasicBlock
                 def enhblock(ci, co):
+                    from leibniz.nn.layer.hyperbolic import BasicBlock
                     return BasicBlock(ci, co, 1.0, relu, TConv)
 
-                self.enhencer_in = enhblock(c0, c0)
-                self.enhencer_out = enhblock(c0, c0)
+                self.enhencer_in = enhencer(c0, c0, c0, encoder=enhblock, decoder=enhblock)
+                self.enhencer_out = enhencer(c0, c0, c0, encoder=enhblock, decoder=enhblock)
                 self.enhencer_mid = enhencer(co, co, co, encoder=enhblock, decoder=enhblock)
 
     def get_conv_for_prepare(self):
