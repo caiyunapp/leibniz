@@ -47,58 +47,52 @@ class Bottleneck(nn.Module):
 
 
 class HyperBasic(nn.Module):
-    extension = 1
-    least_required_dim = 1
+    extension = 3
+    least_required_dim = 3
 
     def __init__(self, dim, step, relu, conv, reduction=16):
         super(HyperBasic, self).__init__()
-        self.dim = dim
+        self.dim = dim // 3
         self.step = step
+        self.output = BasicBlock(7 * self.dim, 3 * self.dim, step, relu, conv, reduction=reduction)
 
-        self.input = BasicBlock(dim, 2 * dim, step, relu, conv, reduction=reduction)
-        self.output = BasicBlock(8 * dim, dim, step, relu, conv, reduction=reduction)
-
-    def forward(self, x):
-        input = self.input(x)
-        velo = input[:, :self.dim]
-        theta = input[:, self.dim:]
-
-        cs = self.step * velo * th.cos(theta * np.pi * 6)
-        ss = self.step * velo * th.sin(theta * np.pi * 6)
+    def forward(self, xs):
+        x, cs, ss = xs[:, :self.dim], xs[:, self.dim:self.dim*2], xs[:, self.dim*2:]
 
         y1 = (1 + ss) * x + cs
         y2 = (1 + cs) * x - ss
         y3 = (1 - cs) * x + ss
         y4 = (1 - ss) * x - cs
-        ys = th.cat((y1, y2, y3, y4, cs, ss, velo, x), dim=1)
+        ys = th.cat((y1, y2, y3, y4, cs, ss, x), dim=1)
 
-        return x + self.output(ys)
+        out = self.output(ys)
+        dx, dcs, dss = out[:, :self.dim], out[:, self.dim:self.dim*2], out[:, self.dim*2:]
+        x, cs, ss = x + dx, cs + dcs, ss + dss
+
+        return th.cat((x, cs, ss), dim=1)
 
 
 class HyperBottleneck(nn.Module):
-    extension = 4
-    least_required_dim = 1
+    extension = 3
+    least_required_dim = 3
 
     def __init__(self, dim, step, relu, conv, reduction=16):
         super(HyperBottleneck, self).__init__()
-        self.dim = dim
+        self.dim = dim // 3
         self.step = step
+        self.output = Bottleneck(7 * self.dim, 3 * self.dim, step, relu, conv, reduction=reduction)
 
-        self.input = Bottleneck(dim, 2 * dim, step, relu, conv, reduction=reduction)
-        self.output = Bottleneck(8 * dim, dim, step, relu, conv, reduction=reduction)
-
-    def forward(self, x):
-        input = self.input(x)
-        velo = input[:, :self.dim]
-        theta = input[:, self.dim:]
-
-        cs = self.step * velo * th.cos(theta * np.pi * 6)
-        ss = self.step * velo * th.sin(theta * np.pi * 6)
+    def forward(self, xs):
+        x, cs, ss = xs[:, :self.dim], xs[:, self.dim:self.dim*2], xs[:, self.dim*2:]
 
         y1 = (1 + ss) * x + cs
         y2 = (1 + cs) * x - ss
         y3 = (1 - cs) * x + ss
         y4 = (1 - ss) * x - cs
-        ys = th.cat((y1, y2, y3, y4, cs, ss, velo, x), dim=1)
+        ys = th.cat((y1, y2, y3, y4, cs, ss, x), dim=1)
 
-        return x + self.output(ys)
+        out = self.output(ys)
+        dx, dcs, dss = out[:, :self.dim], out[:, self.dim:self.dim*2], out[:, self.dim*2:]
+        x, cs, ss = x + dx, cs + dcs, ss + dss
+
+        return th.cat((x, cs, ss), dim=1)
