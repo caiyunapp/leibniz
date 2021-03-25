@@ -48,7 +48,7 @@ class Bottleneck(nn.Module):
 
 class HyperBasic(nn.Module):
     extension = 3
-    least_required_dim = 3
+    least_required_dim = 1
 
     def __init__(self, dim, step, relu, conv, reduction=16):
         super(HyperBasic, self).__init__()
@@ -74,7 +74,7 @@ class HyperBasic(nn.Module):
 
 class HyperBottleneck(nn.Module):
     extension = 3
-    least_required_dim = 3
+    least_required_dim = 1
 
     def __init__(self, dim, step, relu, conv, reduction=16):
         super(HyperBottleneck, self).__init__()
