@@ -300,8 +300,8 @@ class UNet(nn.Module):
                     raise ValueError('scales exceeded!')
 
             if self.dim == 2 and enhencer is not None:
-                self.enhencer_in = enhencer(c0, c0, c0)
-                self.enhencer_out = enhencer(c0, c0, c0)
+                self.enhencer_in = enhencer(c0, c0 * 2, c0)
+                self.enhencer_out = enhencer(c0, c0 * 2, c0)
                 self.enhencer_mid = enhencer(co, (c0 + 1) // 2, co)
 
     def get_conv_for_prepare(self):
