@@ -30,9 +30,10 @@ class Bottleneck(nn.Module):
         self.step = step
         self.relu = relu
 
-        self.conv1 = conv(in_channel, in_channel // 4, kernel_size=1, bias=False)
-        self.conv2 = conv(in_channel // 4, in_channel // 4, kernel_size=3, bias=False, padding=1)
-        self.conv3 = conv(in_channel // 4, out_channel, kernel_size=1, bias=False)
+        hd_channel = in_channel // 4 + 1
+        self.conv1 = conv(in_channel, hd_channel, kernel_size=1, bias=False)
+        self.conv2 = conv(hd_channel, hd_channel, kernel_size=3, bias=False, padding=1)
+        self.conv3 = conv(hd_channel, out_channel, kernel_size=1, bias=False)
         self.cbam = CBAM(out_channel, reduction=reduction, conv=conv)
 
     def forward(self, x):
@@ -70,7 +71,7 @@ class HyperBasic(nn.Module):
 
 
 class HyperBottleneck(nn.Module):
-    extension = 4
+    extension = 1
     least_required_dim = 1
 
     def __init__(self, dim, step, relu, conv, reduction=16):
