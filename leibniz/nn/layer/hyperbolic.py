@@ -30,10 +30,11 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         self.step = step
         self.relu = relu
+        hidden = max(in_channel, out_channel) // 4
 
-        self.conv1 = conv(in_channel, in_channel // 4, kernel_size=1, bias=False)
-        self.conv2 = conv(in_channel // 4, in_channel // 4, kernel_size=3, bias=False, padding=1)
-        self.conv3 = conv(in_channel // 4, out_channel, kernel_size=1, bias=False)
+        self.conv1 = conv(in_channel, hidden, kernel_size=1, bias=False)
+        self.conv2 = conv(hidden, hidden, kernel_size=3, bias=False, padding=1)
+        self.conv3 = conv(hidden, out_channel, kernel_size=1, bias=False)
         self.cbam = CBAM(out_channel, reduction=reduction, conv=conv)
 
     def forward(self, x):
