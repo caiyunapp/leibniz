@@ -4,7 +4,7 @@ import numpy as np
 import torch as th
 import torch.nn as nn
 
-from leibniz.nn.layer.cbam import CBAM
+from leibniz.nn.layer.simam import SimAM
 
 
 class BasicBlock(nn.Module):
@@ -15,13 +15,13 @@ class BasicBlock(nn.Module):
 
         self.conv1 = conv(in_channel, in_channel, kernel_size=3, stride=1, padding=1)
         self.conv2 = conv(in_channel, out_channel, kernel_size=3, stride=1, padding=1)
-        self.cbam = CBAM(out_channel, reduction=reduction, conv=conv)
+        self.simam = SimAM(out_channel, reduction=reduction, conv=conv)
 
     def forward(self, x):
         y = self.conv1(x)
         y = self.relu(y)
         y = self.conv2(y)
-        y = self.cbam(y)
+        y = self.simam(y)
         return y
 
 
@@ -35,7 +35,7 @@ class Bottleneck(nn.Module):
         self.conv1 = conv(in_channel, hidden, kernel_size=1, bias=False)
         self.conv2 = conv(hidden, hidden, kernel_size=3, bias=False, padding=1)
         self.conv3 = conv(hidden, out_channel, kernel_size=1, bias=False)
-        self.cbam = CBAM(out_channel, reduction=reduction, conv=conv)
+        self.simam = SimAM(out_channel, reduction=reduction, conv=conv)
 
     def forward(self, x):
         y = self.conv1(x)
@@ -43,7 +43,7 @@ class Bottleneck(nn.Module):
         y = self.conv2(y)
         y = self.relu(y)
         y = self.conv3(y)
-        y = self.cbam(y)
+        y = self.simam(y)
         return y
 
 
