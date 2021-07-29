@@ -7,7 +7,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
-from leibniz.nn.layer.cbam import CBAM
+from leibniz.nn.layer.simam import SimAM
 from leibniz.nn.net.hyptube import HypTube
 
 logger = logging.getLogger()
@@ -115,7 +115,7 @@ class Transform(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, transform, activation=True, dropout=False, relu=None, attn=CBAM, dim=2, normalizor='batch', conv=None):
+    def __init__(self, transform, activation=True, dropout=False, relu=None, attn=SimAM, dim=2, normalizor='batch', conv=None):
 
         super(Block, self).__init__()
         self.activation = activation
@@ -159,7 +159,6 @@ class Block(nn.Module):
                 self.drop = nn.Dropout2d(p=dropout)
             elif dim == 3:
                 self.drop = nn.Dropout3d(p=dropout)
-
 
     def forward(self, *xs):
 
@@ -241,7 +240,7 @@ class UNet(nn.Module):
                 relu = nn.ReLU(inplace=True)
 
             if attn is None:
-                attn = CBAM
+                attn = SimAM
 
             ex = extension
             c0 = int(ex * num_filters)
