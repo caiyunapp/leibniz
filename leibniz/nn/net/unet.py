@@ -7,7 +7,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
-from leibniz.nn.layer.simam import SimAM
+from leibniz.nn.layer.cbam import CBAM
 from leibniz.nn.net.hyptube import HypTube
 
 logger = logging.getLogger()
@@ -115,7 +115,7 @@ class Transform(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, transform, activation=True, dropout=False, relu=None, attn=SimAM, dim=2, normalizor='batch', conv=None):
+    def __init__(self, transform, activation=True, dropout=-1, relu=None, attn=CBAM, dim=2, normalizor='batch', conv=None):
 
         super(Block, self).__init__()
         self.activation = activation
@@ -154,11 +154,11 @@ class Block(nn.Module):
 
         if self.dropout_flag:
             if dim == 1:
-                self.drop = nn.Dropout(p=dropout)
+                self.drop = nn.Dropout(p=dropout, inplace=True)
             elif dim == 2:
-                self.drop = nn.Dropout2d(p=dropout)
+                self.drop = nn.Dropout2d(p=dropout, inplace=True)
             elif dim == 3:
-                self.drop = nn.Dropout3d(p=dropout)
+                self.drop = nn.Dropout3d(p=dropout, inplace=True)
 
     def forward(self, *xs):
 
@@ -181,7 +181,7 @@ class Block(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, enhencer=None, ksize_in=7, dropout=0.1,
+    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, enhencer=None, ksize_in=7, dropout_prob=0.1,
                  vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
@@ -240,7 +240,7 @@ class UNet(nn.Module):
                 relu = nn.ReLU(inplace=True)
 
             if attn is None:
-                attn = SimAM
+                attn = CBAM
 
             ex = extension
             c0 = int(ex * num_filters)
@@ -285,11 +285,13 @@ class UNet(nn.Module):
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
-                        dropout = dropout if dropout_flag else -1
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout_flag, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
+                        dropout = dropout_prob if dropout_flag else -1
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout,
+                                                  relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                         self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=TConv))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
+                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False,
+                                                  relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                     except Exception as e:
                         logger.exception(e)

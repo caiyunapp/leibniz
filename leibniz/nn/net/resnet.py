@@ -14,7 +14,7 @@ logger.setLevel(logging.INFO)
 
 
 class ResNet(nn.Module):
-    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2,
+    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, dropout_prob=0.5,
                  vblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
@@ -114,7 +114,8 @@ class ResNet(nn.Module):
                 if not self.exceeded:
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
-                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout_flag, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
+                        dropout = dropout_prob if dropout_flag else -1
+                        self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                     except Exception as e:
                         logger.exception(e)
