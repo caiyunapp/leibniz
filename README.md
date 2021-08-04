@@ -68,7 +68,7 @@ from leibniz.unet import UNet
 from leibniz.nn.layer.hyperbolic import HyperBottleneck
 from leibniz.nn.activation import CappingRelu
 
-unet = UNet(6, 1, normalizor='batch', spatial=(32, 64), layers=5, ratio=1,
+unet = UNet(6, 1, normalizor='batch', spatial=(32, 64), layers=5, ratio=-1,
             vblks=[4, 4, 4, 4, 4], hblks=[1, 1, 1, 1, 1],
             scales=[-1, -1, -1, -1, -1], factors=[1, 1, 1, 1, 1],
             block=HyperBottleneck, relu=CappingRelu(), final_normalized=False)
