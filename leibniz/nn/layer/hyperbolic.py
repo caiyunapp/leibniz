@@ -57,7 +57,7 @@ class HyperBasic(nn.Module):
         self.step = step
 
         self.input = BasicBlock(dim, 2 * dim, step, relu, conv, reduction=reduction)
-        self.output = BasicBlock(4 * dim, dim, step, relu, conv, reduction=reduction)
+        self.output = BasicBlock(5 * dim, dim, step, relu, conv, reduction=reduction)
 
     def forward(self, x):
         input = self.input(x) * self.step
@@ -68,7 +68,7 @@ class HyperBasic(nn.Module):
         y2 = x * u - v
         y3 = - x * v - u
         y4 = - x * u + v
-        ys = th.cat((y1, y2, y3, y4), dim=1)
+        ys = th.cat((y1, y2, y3, y4, x), dim=1)
 
         return x + self.output(ys)
 
@@ -83,7 +83,7 @@ class HyperBottleneck(nn.Module):
         self.step = step
 
         self.input = Bottleneck(dim, 2 * dim, step, relu, conv, reduction=reduction)
-        self.output = Bottleneck(4 * dim, dim, step, relu, conv, reduction=reduction)
+        self.output = Bottleneck(5 * dim, dim, step, relu, conv, reduction=reduction)
 
     def forward(self, x):
         input = self.input(x) * self.step
@@ -94,6 +94,6 @@ class HyperBottleneck(nn.Module):
         y2 = x * u - v
         y3 = - x * v - u
         y4 = - x * u + v
-        ys = th.cat((y1, y2, y3, y4), dim=1)
+        ys = th.cat((y1, y2, y3, y4, x), dim=1)
 
         return x + self.output(ys)
