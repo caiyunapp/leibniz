@@ -1,5 +1,6 @@
 # Leibniz
 
+[![DOI](https://zenodo.org/badge/208940378.svg)](https://zenodo.org/badge/latestdoi/208940378)
 [![Build Status](https://api.travis-ci.com/caiyunapp/leibniz.svg?branch=master)](http://travis-ci.com/caiyunapp/leibniz) 
 
 Leibniz is a python package which provide facilities to express learnable differential equations with PyTorch
