@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import torch as th
 import torch.nn as nn
 
@@ -15,7 +14,7 @@ class BasicBlock(nn.Module):
 
         self.conv1 = conv(in_channel, in_channel, kernel_size=3, stride=1, padding=1)
         self.conv2 = conv(in_channel, out_channel, kernel_size=3, stride=1, padding=1)
-        self.simam = SimAM(out_channel, reduction=reduction, conv=conv)
+        self.simam = SimAM(out_channel, reduction)
 
     def forward(self, x):
         y = self.conv1(x)
@@ -30,12 +29,12 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         self.step = step
         self.relu = relu
-        hidden = max(in_channel, out_channel) // 4
+        hidden = min(in_channel, out_channel) // 4 + 1
 
         self.conv1 = conv(in_channel, hidden, kernel_size=1, bias=False)
         self.conv2 = conv(hidden, hidden, kernel_size=3, bias=False, padding=1)
         self.conv3 = conv(hidden, out_channel, kernel_size=1, bias=False)
-        self.simam = SimAM(out_channel, reduction=reduction, conv=conv)
+        self.simam = SimAM(out_channel, reduction)
 
     def forward(self, x):
         y = self.conv1(x)
@@ -57,20 +56,20 @@ class HyperBasic(nn.Module):
         self.step = step
 
         self.input = BasicBlock(dim, 2 * dim, step, relu, conv, reduction=reduction)
-        self.output = BasicBlock(5 * dim, dim, step, relu, conv, reduction=reduction)
+        self.output = BasicBlock(2 * dim, 2 * dim, step, relu, conv, reduction=reduction)
 
     def forward(self, x):
-        input = self.input(x) * self.step
-        u = input[:, :self.dim]
-        v = input[:, self.dim:]
+        r = self.input(x) * self.step
+        u = r[:, :self.dim]
+        v = r[:, self.dim:]
 
-        y1 = x * v + u
-        y2 = x * u - v
-        y3 = - x * v - u
-        y4 = - x * u + v
-        ys = th.cat((y1, y2, y3, y4, x), dim=1)
+        y1 = x * (1 + v) + u
+        ys = th.cat([y1, x], dim=1)
+        r = self.output(ys) * self.step
+        u = r[:, :self.dim]
+        v = r[:, self.dim:]
 
-        return x + self.output(ys)
+        return y1 * (1 + v) + u
 
 
 class HyperBottleneck(nn.Module):
@@ -83,17 +82,17 @@ class HyperBottleneck(nn.Module):
         self.step = step
 
         self.input = Bottleneck(dim, 2 * dim, step, relu, conv, reduction=reduction)
-        self.output = Bottleneck(5 * dim, dim, step, relu, conv, reduction=reduction)
+        self.output = Bottleneck(2 * dim, 2 * dim, step, relu, conv, reduction=reduction)
 
     def forward(self, x):
-        input = self.input(x) * self.step
-        u = input[:, :self.dim]
-        v = input[:, self.dim:]
+        r = self.input(x) * self.step
+        u = r[:, :self.dim]
+        v = r[:, self.dim:]
 
-        y1 = x * v + u
-        y2 = x * u - v
-        y3 = - x * v - u
-        y4 = - x * u + v
-        ys = th.cat((y1, y2, y3, y4, x), dim=1)
+        y1 = x * (1 + v) + u
+        ys = th.cat([y1, x], dim=1)
+        r = self.output(ys) * self.step
+        u = r[:, :self.dim]
+        v = r[:, self.dim:]
 
-        return x + self.output(ys)
+        return y1 * (1 + v) + u

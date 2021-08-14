@@ -7,7 +7,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
-from leibniz.nn.layer.cbam import CBAM
+from leibniz.nn.layer.senet import SELayer
 from leibniz.nn.net.hyptube import HypTube
 
 logger = logging.getLogger()
@@ -115,7 +115,7 @@ class Transform(nn.Module):
 
 
 class Block(nn.Module):
-    def __init__(self, transform, activation=True, dropout=-1, relu=None, attn=CBAM, dim=2, normalizor='batch', conv=None):
+    def __init__(self, transform, activation=True, dropout=-1, relu=None, attn=SELayer, dim=2, normalizor='batch', conv=None):
 
         super(Block, self).__init__()
         self.activation = activation
@@ -240,7 +240,7 @@ class UNet(nn.Module):
                 relu = nn.ReLU(inplace=True)
 
             if attn is None:
-                attn = CBAM
+                attn = SELayer
 
             ex = extension
             c0 = int(ex * num_filters)
@@ -256,7 +256,7 @@ class UNet(nn.Module):
                 )
             else:
                 self.conv_padding = 1
-                self.iconv = Conv(in_channels, c0, kernel_size=5, padding=2, groups=1)
+                self.iconv = Conv(in_channels, c0, kernel_size=ksize_in, padding=(ksize_in - 1) // 2, groups=1)
                 self.oconv = Conv(c0, out_channels, kernel_size=3, padding=self.conv_padding, bias=False, groups=1)
 
             if final_normalized:
@@ -301,8 +301,6 @@ class UNet(nn.Module):
                     raise ValueError('scales exceeded!')
 
             if self.dim == 2 and enhencer is not None:
-                self.enhencer_in = enhencer(c0, (c0 + 1) // 2, c0)
-                self.enhencer_out = enhencer(c0, (c0 + 1) // 2, c0)
                 self.enhencer_mid = enhencer(co, (c0 + 1) // 2, co)
 
     def get_conv_for_prepare(self):
