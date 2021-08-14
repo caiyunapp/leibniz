@@ -10,10 +10,12 @@ class HyperBasic(nn.Module):
     extension = 1
     least_required_dim = 1
 
-    def __init__(self, dim, step, relu, conv, reduction=16):
+    def __init__(self, dim, step, ix, tx, relu, conv, reduction=16):
         super(HyperBasic, self).__init__()
         self.dim = dim
         self.step = step
+        self.ix = ix
+        self.tx = tx
 
         self.input = BasicBlock(dim, 2 * dim, step, relu, conv, reduction=reduction)
         self.output = BasicBlock(4 * dim, dim, step, relu, conv, reduction=reduction)
@@ -38,10 +40,12 @@ class HyperBottleneck(nn.Module):
     extension = 4
     least_required_dim = 1
 
-    def __init__(self, dim, step, relu, conv, reduction=16):
+    def __init__(self, dim, step, ix, tx, relu, conv, reduction=16):
         super(HyperBottleneck, self).__init__()
         self.dim = dim
         self.step = step
+        self.ix = ix
+        self.tx = tx
 
         self.input = Bottleneck(dim, 2 * dim, step, relu, conv, reduction=reduction)
         self.output = Bottleneck(4 * dim, dim, step, relu, conv, reduction=reduction)

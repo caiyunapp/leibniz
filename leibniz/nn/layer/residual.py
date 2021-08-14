@@ -7,8 +7,10 @@ class Basic(th.nn.Module):
     extension = 1
     least_required_dim = 1
 
-    def __init__(self, dim, step, relu, conv):
+    def __init__(self, dim, step, ix, tx, relu, conv):
         super(Basic, self).__init__()
+        self.ix = ix
+        self.tx = tx
 
         self.step = step
         self.relu = relu
@@ -29,8 +31,10 @@ class Bottleneck(th.nn.Module):
     extension = 1
     least_required_dim = 4
 
-    def __init__(self, dim, step, relu, conv):
+    def __init__(self, dim, step, ix, tx, relu, conv):
         super(Bottleneck, self).__init__()
+        self.ix = ix
+        self.tx = tx
 
         self.step = step
         self.relu = relu

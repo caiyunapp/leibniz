@@ -41,10 +41,12 @@ class SEBasicBlock(nn.Module):
     extension = 1
     least_required_dim = 1
 
-    def __init__(self, dim, step, relu, conv, reduction=16):
+    def __init__(self, dim, step, ix, tx, relu, conv, reduction=16):
         super(SEBasicBlock, self).__init__()
         self.step = step
         self.relu = relu
+        self.ix = ix
+        self.tx = tx
 
         self.conv1 = conv(dim, dim, kernel_size=3, stride=1, padding=1)
         self.conv2 = conv(dim, dim, kernel_size=3, stride=1, padding=1)
@@ -64,10 +66,12 @@ class SEBottleneck(nn.Module):
     extension = 4
     least_required_dim = 1
 
-    def __init__(self, dim, step, relu, conv, reduction=16):
+    def __init__(self, dim, step, ix, tx, relu, conv, reduction=16):
         super(SEBottleneck, self).__init__()
         self.step = step
         self.relu = relu
+        self.ix = ix
+        self.tx = tx
 
         self.conv1 = conv(dim, dim // 4, kernel_size=1, bias=False)
         self.conv2 = conv(dim // 4, dim // 4, kernel_size=3, bias=False, padding=1)

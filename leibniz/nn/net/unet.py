@@ -101,9 +101,9 @@ class Transform(nn.Module):
         if nblks > 0 and block is not None:
             blocks = []
             for i in range(nblks - 1):
-                blocks.append(block(self.out_channels, step=1.0 / nblks, relu=relu, conv=conv))
+                blocks.append(block(self.out_channels, step=1.0 / nblks, ix=i, tx=nblks, relu=relu, conv=conv))
                 blocks.append(relu)
-            blocks.append(block(self.out_channels, step=1.0 / nblks, relu=relu, conv=conv))
+            blocks.append(block(self.out_channels, step=1.0 / nblks, ix=nblks, tx=nblks, relu=relu, conv=conv))
             self.blocks = nn.Sequential(*blocks)
 
     def forward(self, x):
