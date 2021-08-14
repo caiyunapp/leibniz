@@ -3,7 +3,7 @@
 import torch as th
 import torch.nn as nn
 
-from leibniz.nn.layer.simam import SimAM
+from leibniz.nn.layer.senet import SELayer
 
 
 class BasicBlock(nn.Module):
@@ -14,13 +14,13 @@ class BasicBlock(nn.Module):
 
         self.conv1 = conv(in_channel, in_channel, kernel_size=3, stride=1, padding=1)
         self.conv2 = conv(in_channel, out_channel, kernel_size=3, stride=1, padding=1)
-        self.simam = SimAM(out_channel, reduction)
+        self.se = SELayer(out_channel, reduction)
 
     def forward(self, x):
         y = self.conv1(x)
         y = self.relu(y)
         y = self.conv2(y)
-        y = self.simam(y)
+        y = self.se(y)
         return y
 
 
@@ -34,7 +34,7 @@ class Bottleneck(nn.Module):
         self.conv1 = conv(in_channel, hidden, kernel_size=1, bias=False)
         self.conv2 = conv(hidden, hidden, kernel_size=3, bias=False, padding=1)
         self.conv3 = conv(hidden, out_channel, kernel_size=1, bias=False)
-        self.simam = SimAM(out_channel, reduction)
+        self.se = SELayer(out_channel, reduction)
 
     def forward(self, x):
         y = self.conv1(x)
@@ -42,7 +42,7 @@ class Bottleneck(nn.Module):
         y = self.conv2(y)
         y = self.relu(y)
         y = self.conv3(y)
-        y = self.simam(y)
+        y = self.se(y)
         return y
 
 
