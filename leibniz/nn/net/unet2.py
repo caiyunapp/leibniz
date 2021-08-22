@@ -9,178 +9,13 @@ import torch.nn as nn
 from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
 from leibniz.nn.layer.cbam import CBAM
 from leibniz.nn.net.hyptube import HypTube
+from leibniz.nn.net.unet import UNet, Enconv, Deconv, Block, Transform
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-class Enconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=(256, 256), conv=nn.Conv2d, padding=None):
-
-        super(Enconv, self).__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.size = size
-
-        if len(size) == 1:
-            self.scale = nn.Upsample(size=tuple(size), mode='linear')
-        elif len(size) == 2:
-            self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
-        elif len(size) == 3:
-            self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
-
-        self.padding = padding
-        if padding is not None:
-            self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, groups=1)
-        else:
-            self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
-
-    def forward(self, x):
-        ratio = (np.array(x.size())[-len(self.size):].prod()) / (np.array(self.size).prod())
-        if ratio < 1.0:
-            x = self.scale(x)
-            if self.padding is not None:
-                x = self.padding(x)
-            x = self.conv(x)
-        else:
-            if self.padding is not None:
-                x = self.padding(x)
-            x = self.conv(x)
-            x = self.scale(x)
-
-        return x
-
-
-class Deconv(nn.Module):
-    def __init__(self, in_channels, out_channels, size=(256,256), conv=nn.Conv2d, padding=None):
-        super(Deconv, self).__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.size = size
-
-        if len(size) == 1:
-            self.scale = nn.Upsample(size=tuple(size), mode='linear')
-        elif len(size) == 2:
-            self.scale = nn.Upsample(size=tuple(size), mode='bilinear')
-        elif len(size) == 3:
-            self.scale = nn.Upsample(size=tuple(size), mode='trilinear')
-
-        self.padding = padding
-        if padding is not None:
-            self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=0, dilation=1, groups=1)
-        else:
-            self.conv = conv(in_channels, out_channels, kernel_size=3, stride=1, padding=1, dilation=1, groups=1)
-
-    def forward(self, x):
-        ratio = (np.array(x.size())[-len(self.size):].prod()) / (np.array(self.size).prod())
-        if ratio < 1.0:
-            x = self.scale(x)
-            if self.padding is not None:
-                x = self.padding(x)
-            x = self.conv(x)
-        else:
-            if self.padding is not None:
-                x = self.padding(x)
-            x = self.conv(x)
-            x = self.scale(x)
-
-        return x
-
-
-class Transform(nn.Module):
-    def __init__(self, in_channels, out_channels, nblks=0, block=None, relu=None, conv=nn.Conv2d):
-
-        super(Transform, self).__init__()
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-
-        if relu is None:
-            relu = nn.ReLU(inplace=True)
-
-        self.blocks = None
-        if nblks > 0 and block is not None:
-            blocks = []
-            for i in range(1, nblks - 1, 1):
-                blocks.append(block(self.out_channels, step=1.0 / nblks, ix=i, tx=nblks, relu=relu, conv=conv))
-                blocks.append(relu)
-            blocks.append(block(self.out_channels, step=1.0 / nblks, ix=nblks, tx=nblks, relu=relu, conv=conv))
-            self.blocks = nn.Sequential(*blocks)
-
-    def forward(self, x):
-
-        if self.blocks is not None:
-            return self.blocks(x), x
-        else:
-            return x, x
-
-
-class Block(nn.Module):
-    def __init__(self, transform, activation=True, dropout=-1, relu=None, attn=CBAM, dim=2, normalizor='batch', conv=None):
-
-        super(Block, self).__init__()
-        self.activation = activation
-        self.dropout_flag = dropout > 0
-        self.blocks = None
-
-        self.transform = transform
-
-        self.attn = attn(transform.out_channels, conv=conv)
-
-        if self.activation:
-            if relu is not None:
-                self.lrelu = relu
-            else:
-                self.lrelu = nn.LeakyReLU(negative_slope=0.2, inplace=True)
-
-        self.normalizor = None
-        if normalizor == 'batch':
-            if dim == 1:
-                self.normalizor = nn.BatchNorm1d(transform.out_channels, affine=True)
-            elif dim == 2:
-                self.normalizor = nn.BatchNorm2d(transform.out_channels, affine=True)
-            elif dim == 3:
-                self.normalizor = nn.BatchNorm3d(transform.out_channels, affine=True)
-
-        elif normalizor == 'instance':
-            if dim == 1:
-                self.normalizor = nn.InstanceNorm1d(transform.out_channels)
-            elif dim == 2:
-                self.normalizor = nn.InstanceNorm2d(transform.out_channels)
-            elif dim == 3:
-                self.normalizor = nn.InstanceNorm3d(transform.out_channels)
-
-        elif normalizor == 'layer':
-            self.normalizor = nn.LayerNorm(tuple([transform.out_channels]) + tuple(transform.size))
-
-        if self.dropout_flag:
-            if dim == 1:
-                self.drop = nn.Dropout(p=dropout, inplace=True)
-            elif dim == 2:
-                self.drop = nn.Dropout2d(p=dropout, inplace=True)
-            elif dim == 3:
-                self.drop = nn.Dropout3d(p=dropout, inplace=True)
-
-    def forward(self, *xs):
-
-        x = th.cat(xs, dim=1)
-
-        if self.activation:
-            x = self.lrelu(x)
-
-        x = self.transform(x)
-
-        if self.normalizor:
-            x = self.normalizor(x)
-
-        if self.dropout_flag:
-            x = self.drop(x)
-
-        x = self.attn(x)
-
-        return x
-
-
-class UNet(nn.Module):
+class UNet2(nn.Module):
     def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, enhencer=None, ksize_in=7, dropout_prob=0.1,
                  vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
@@ -257,7 +92,7 @@ class UNet(nn.Module):
             else:
                 self.conv_padding = 1
                 self.iconv = Conv(in_channels, c0, kernel_size=ksize_in, padding=(ksize_in - 1) // 2, groups=1)
-                self.oconv = Conv(c0, out_channels, kernel_size=3, padding=self.conv_padding, bias=False, groups=1)
+                self.oconv = Conv(c0 * 2, out_channels, kernel_size=3, padding=self.conv_padding, bias=False, groups=1)
 
             if final_normalized:
                 self.relu6 = nn.ReLU6()
@@ -267,6 +102,7 @@ class UNet(nn.Module):
             self.hzforms = nn.ModuleList()
             self.upforms = nn.ModuleList()
             self.deconvs = nn.ModuleList()
+            self.mdconvs = nn.ModuleList()
 
             self.spatial = [np.array(spatial, dtype=np.int)]
             self.channel_sizes = [np.array(c0, dtype=np.int)]
@@ -286,11 +122,13 @@ class UNet(nn.Module):
                     try:
                         dropout_flag = (layers - ix) * 3 < layers
                         dropout = dropout_prob if dropout_flag else -1
+                        self.mdconvs.append(Block(Deconv(co, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False,
+                                                  relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
                         self.enconvs.append(Block(Enconv(ci, co, size=szi, conv=TConv, padding=padding), activation=True, dropout=dropout,
                                                   relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
                         self.dnforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
-                        self.hzforms.append(Transform(co, co, nblks=hblks[ix], block=block, relu=relu, conv=TConv))
-                        self.deconvs.append(Block(Deconv(co * 2, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False,
+                        self.hzforms.append(Transform(co * 2, co * 2, nblks=hblks[ix], block=block, relu=relu, conv=TConv))
+                        self.deconvs.append(Block(Deconv(co * 3, ci, size=szo, conv=TConv, padding=padding), activation=True, dropout=False,
                                                   relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
                         self.upforms.append(Transform(ci, ci, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
                     except Exception as e:
@@ -330,28 +168,29 @@ class UNet(nn.Module):
             raise ValueError('scales exceeded!')
 
         dnt = self.iconv(x)
-        if self.enhencer_in is not None:
-            dnt = self.enhencer_in(dnt)
 
-        hzts = []
+        dnts, encs, mids = [], [], []
         for ix in range(self.layers):
             dnt, enc = self.dnforms[ix](self.enconvs[ix](dnt))
-            hzt, _ = self.hzforms[ix](enc)
-            hzts.append(hzt)
+            mid = self.mdconvs[ix](enc)
+            dnts.append(dnt)
+            encs.append(enc)
+            mids.append(mid)
 
-        if self.enhencer_mid is None:
-            upt = dnt
-        else:
+        if self.enhencer_mid is not None:
             upt = self.enhencer_mid(dnt)
+        else:
+            upt = dnt
 
         for ix in range(self.layers - 1, -1, -1):
-            hzt = hzts[ix]
+            enc = encs[ix]
+            if ix == self.layers - 1:
+                mid = enc
+
+            inp = th.cat([enc, mid], dim=1)
+            trans = self.hzforms[ix]
+            hzt, _ = trans(inp)
             upt, dec = self.upforms[ix](self.deconvs[ix](upt, hzt))
+            mid = mids[ix]
 
-        if self.enhencer_out is not None:
-            upt = self.enhencer_out(upt)
-
-        if self.final_normalized:
-            return self.relu6(self.oconv(upt)) / 6
-        else:
-            return self.oconv(upt)
+        return self.oconv(th.cat([upt, mid], dim=1))
