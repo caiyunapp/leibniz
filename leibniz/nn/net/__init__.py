@@ -55,10 +55,10 @@ def resunet2(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, la
 
 
 def resnet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, layers=4, ratio=0, dropout_prob=0.1,
-                 vblks=[1, 1, 1, 1], scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1],
+                 vblks=[1, 1, 1, 1], factors=[1, 1, 1, 1],
                  spatial=(256, 256), normalizor='batch'):
     return ResNet(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio, dropout_prob=0.5,
-                 vblks=vblks, scales=scales, factors=factors, spatial=spatial, normalizor=normalizor)
+                 vblks=vblks, factors=factors, spatial=spatial, normalizor=normalizor)
 
 
 def hyptub(in_channels, hidden_channels, out_channels, encoder=resunet, decoder=resunet, **kwargs):

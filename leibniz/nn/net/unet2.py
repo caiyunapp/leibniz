@@ -7,7 +7,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.nn.conv import DepthwiseSeparableConv1d, DepthwiseSeparableConv2d, DepthwiseSeparableConv3d
-from leibniz.nn.layer.senet import SELayer
+from leibniz.nn.layer.cbam import CBAM
 from leibniz.nn.net.hyptube import HypTube
 from leibniz.nn.net.unet import UNet, Enconv, Deconv, Block, Transform
 
@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 
 
 class UNet2(nn.Module):
-    def __init__(self, in_channels, out_channels, block=None, attn=SELayer, relu=None, layers=4, ratio=2, enhencer=None, ksize_in=7, dropout_prob=0.1,
+    def __init__(self, in_channels, out_channels, block=None, attn=CBAM, relu=None, layers=4, ratio=2, enhencer=None, ksize_in=7, dropout_prob=0.1,
                  vblks=None, hblks=None, scales=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
@@ -75,7 +75,7 @@ class UNet2(nn.Module):
                 relu = nn.ReLU(inplace=True)
 
             if attn is None:
-                attn = SELayer
+                attn = CBAM
 
             ex = extension
             c0 = int(ex * num_filters)
