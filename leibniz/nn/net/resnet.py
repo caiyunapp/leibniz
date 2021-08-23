@@ -14,7 +14,7 @@ logger.setLevel(logging.INFO)
 
 
 class ResNet(nn.Module):
-    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=2, dropout_prob=0.5,
+    def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=1, dropout_prob=0.5,
                  vblks=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
         super().__init__()
 
@@ -27,7 +27,7 @@ class ResNet(nn.Module):
         TConv = self.get_conv_for_transform()
 
         ratio = np.exp2(ratio)
-        factors = np.array(factors + [0.0])
+        factors = np.array(factors)
         factors = np.exp2(factors)
         num_filters = int(in_channels * ratio)
 
@@ -38,7 +38,7 @@ class ResNet(nn.Module):
         logger.info('---------------------------------------')
         logger.info('ratio: %f', ratio)
         logger.info('vblks: [%s]', ', '.join(map(str, vblks)))
-        logger.info('factors: [%s]', ', '.join(map(str, factors[0:4])))
+        logger.info('factors: [%s]', ', '.join(map(str, factors)))
         logger.info('---------------------------------------')
 
         self.layers = layers
