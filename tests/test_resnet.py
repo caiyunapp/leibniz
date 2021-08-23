@@ -88,6 +88,11 @@ class TestResNet(unittest.TestCase):
         net(th.rand(1, 1, 32, 16))
         net(th.rand(2, 1, 32, 16))
 
+    def testHyp2D2(self):
+        net = resnet(17, 1, factors=[-1, -1, -1, -1], spatial=(32, 16), block=HyperBasic)
+        net(th.rand(1, 17, 32, 16))
+        net(th.rand(2, 17, 32, 16))
+
     def testHyp3D(self):
         net = resnet(1, 1, spatial=(4, 16, 32), block=HyperBasic)
         net(th.rand(1, 1, 4, 16, 32))

@@ -30,7 +30,8 @@ class SimAM(nn.Module):
             n = w * h * l - 1
             dims = [2, 3, 4]
 
-        x_minus_mu_square = (x - x.mean(dim=dims, keepdim=True)).pow(2)
-        y = x_minus_mu_square / (4 * (x_minus_mu_square.sum(dim=dims, keepdim=True) / n + self.e_lambda)) + 0.5
+        mu = x.mean(dim=dims, keepdim=True)
+        square = (x - mu) * (x - mu)
+        y = square / (4 * (square.sum(dim=dims, keepdim=True) / n + self.e_lambda)) + 0.5
 
         return x * self.activaton(y)

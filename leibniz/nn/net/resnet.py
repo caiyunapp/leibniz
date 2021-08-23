@@ -19,7 +19,6 @@ class ResNet(nn.Module):
         super().__init__()
 
         extension = block.extension
-        lrd = block.least_required_dim
 
         spatial = np.array(spatial, dtype=np.int)
         dim = len(spatial)
@@ -57,7 +56,7 @@ class ResNet(nn.Module):
         c0 = int(ex * num_filters)
         accumulated_factors = np.cumprod(factors, axis=0)[-1]
         accumulated_spatial = np.cumprod(spatial, axis=0)[-1]
-        pn = int(c0 * accumulated_factors * accumulated_spatial)
+        pn = int(c0 * accumulated_factors) * accumulated_spatial
 
         if padding:
             self.conv_padding = 0
