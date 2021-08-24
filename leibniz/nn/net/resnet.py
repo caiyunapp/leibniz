@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 
 class ResNet(nn.Module):
     def __init__(self, in_channels, out_channels, block=None, attn=None, relu=None, layers=4, ratio=1, dropout_prob=0.5,
-                 vblks=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None, final_normalized=True):
+                 vblks=None, factors=None, spatial=(256, 256), normalizor='batch', padding=None):
         super().__init__()
 
         extension = block.extension
@@ -31,7 +31,6 @@ class ResNet(nn.Module):
         factors = np.exp2(factors)
         num_filters = int(in_channels * ratio)
 
-        self.final_normalized = final_normalized
         self.ratio = ratio
         self.vblks = vblks
         self.factors = factors
@@ -55,27 +54,10 @@ class ResNet(nn.Module):
         ex = extension
         c0 = int(ex * num_filters)
         accumulated_factors = np.cumprod(factors, axis=0)[-1]
-        accumulated_spatial = np.cumprod(spatial, axis=0)[-1]
-        pn = int(c0 * accumulated_factors) * accumulated_spatial
+        ch = int(c0 * accumulated_factors)
 
-        if padding:
-            self.conv_padding = 0
-            self.iconv = nn.Sequential(
-                padding,
-                Conv(in_channels, c0, kernel_size=3, padding=self.conv_padding, groups=1),
-            )
-            self.fc = nn.Sequential(
-                padding,
-                nn.Linear(pn, out_channels),
-            )
-        else:
-            self.conv_padding = 1
-            self.iconv = Conv(in_channels, c0, kernel_size=7, padding=3, groups=1)
-            self.fc = nn.Linear(pn, out_channels, bias=False)
-
-        if final_normalized:
-            self.relu6 = nn.ReLU6()
-
+        self.conv_padding = 1
+        self.iconv = Conv(in_channels, c0, kernel_size=7, padding=3, groups=1)
         self.enconvs = nn.ModuleList()
         self.transforms = nn.ModuleList()
 
@@ -91,6 +73,8 @@ class ResNet(nn.Module):
 
             self.enconvs.append(Block(Enconv(ci, co, size=spatial, conv=TConv, padding=padding), activation=True, dropout=dropout_prob, relu=relu, attn=attn, dim=self.dim, normalizor=normalizor, conv=TConv))
             self.transforms.append(Transform(co, co, nblks=vblks[ix], block=block, relu=relu, conv=TConv))
+
+        self.oconv = Conv(co, out_channels, kernel_size=3, padding=1, groups=1)
 
     def get_conv_for_prepare(self):
         if self.dim == 1:
@@ -121,4 +105,4 @@ class ResNet(nn.Module):
         for ix in range(self.layers):
             dnt, enc = self.transforms[ix](self.enconvs[ix](dnt))
 
-        return self.fc(dnt.view(sz[0], -1))
+        return self.oconv(dnt)

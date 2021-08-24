@@ -89,10 +89,10 @@ class TestResNet(unittest.TestCase):
         net(th.rand(2, 1, 32, 16))
 
     def testHyp2D2(self):
-        net = resnet(17, 1, factors=[-1, -1, -1, -1], vblks=[1, 1, 1, 1, 1], spatial=(32, 16), block=HyperBasic)
+        net = resnet(17, 1, factors=[-1, -1, -1, -1], vblks=[1, 1, 1, 1, 1], spatial=(32, 16), block=HyperBottleneck)
         net(th.rand(1, 17, 32, 16))
         net(th.rand(2, 17, 32, 16))
-        net = resnet(119, 1, layers=5, ratio=0, factors=[-2, -1, -1, -1, -1], vblks=[1, 1, 1, 1, 1], spatial=(32, 16), block=HyperBasic)
+        net = resnet(119, 1, layers=5, ratio=0, factors=[-2, -1, -1, -1, -1], vblks=[1, 1, 1, 1, 1], spatial=(32, 16), block=HyperBottleneck)
         net(th.rand(1, 119, 32, 16))
         net(th.rand(2, 119, 32, 16))
         net = resnet(119, 1, layers=6, ratio=0, factors=[-1, -1, -1, -1, -1, -1], vblks=[1, 1, 1, 1, 1, 1], spatial=(32, 16), block=HyperBasic)
