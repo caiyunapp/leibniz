@@ -172,7 +172,7 @@ class Block(nn.Module):
         if self.normalizor:
             x = self.normalizor(x)
 
-        if self.dropout_flag:
+        if self.dropout_flag and self.training:
             x = self.drop(x)
 
         x = self.attn(x)
