@@ -185,7 +185,7 @@ class UNet2(nn.Module):
         for ix in range(self.layers - 1, -1, -1):
             enc = encs[ix]
             if ix == self.layers - 1:
-                mid = enc
+                mid = upt
 
             inp = th.cat([enc, mid], dim=1)
             trans = self.hzforms[ix]
