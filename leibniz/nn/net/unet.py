@@ -119,7 +119,7 @@ class Block(nn.Module):
 
         super(Block, self).__init__()
         self.activation = activation
-        self.dropout_flag = dropout > 0
+        self.dropout_flag = dropout > 0 and self.training
         self.blocks = None
 
         self.transform = transform
