@@ -5,6 +5,7 @@ from leibniz.nn.activation import Swish
 
 from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.unet2 import UNet2
+from leibniz.nn.net.unet3 import UNet3
 from leibniz.nn.net.resnet import ResNet
 from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
@@ -50,6 +51,15 @@ def resunet2(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, la
                  scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=(256, 256), normalizor='batch',
                  enhencer=None, final_normalized=False):
     return UNet2(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio, ksize_in=ksize_in, dropout_prob=dropout_prob,
+                 vblks=vblks, hblks=hblks, scales=scales, factors=factors, spatial=spatial, normalizor=normalizor,
+                 enhencer=enhencer, final_normalized=final_normalized)
+
+
+def resunet3(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, layers=4, ratio=0, ksize_in=7, dropout_prob=0.5,
+                 vblks=[1, 1, 1, 1], hblks=[1, 1, 1, 1],
+                 scales=[-1, -1, -1, -1], factors=[1, 1, 1, 1], spatial=(256, 256), normalizor='batch',
+                 enhencer=None, final_normalized=False):
+    return UNet3(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio, ksize_in=ksize_in, dropout_prob=dropout_prob,
                  vblks=vblks, hblks=hblks, scales=scales, factors=factors, spatial=spatial, normalizor=normalizor,
                  enhencer=enhencer, final_normalized=final_normalized)
 
