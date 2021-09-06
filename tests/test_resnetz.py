@@ -4,8 +4,6 @@ import unittest
 import torch as th
 
 from leibniz.nn.net import resnetz
-from leibniz.nn.layer.hyperbolic import HyperBasic
-from leibniz.nn.layer.hyperbolic import HyperBottleneck
 
 
 class Testresnetz(unittest.TestCase):
@@ -64,7 +62,7 @@ class Testresnetz(unittest.TestCase):
         net(th.rand(1, 1, 4, 16, 32))
         net = resnetz(1, 1, spatial=(4, 16, 32), normalizor='tanh')
         net(th.rand(1, 1, 4, 16, 32))
-        net = resnetz(1, 1, spatial=(4, 16, 32), normalizor='sofmax')
+        net = resnetz(1, 1, spatial=(4, 16, 32), normalizor='softmax')
         net(th.rand(1, 1, 4, 16, 32))
         net = resnetz(1, 1, spatial=(4, 16, 32), normalizor='sigmoid')
         net(th.rand(1, 1, 4, 16, 32))

@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 
 class ResNetZ(nn.Module):
     def __init__(self, in_channels, out_channels,  layers=4, ratio=1, spatial=(256, 256),
-                 bias=0.0, scale=1.0, conv_class=None, relu=None, normalizor=None):
+                 conv_class=None, relu=None, normalizor=None):
         super().__init__()
 
         spatial = np.array(spatial, dtype=np.int)
@@ -28,9 +28,6 @@ class ResNetZ(nn.Module):
         self.out_channels = int(out_channels)
         self.spatial = [np.array(spatial, dtype=np.int)]
 
-        self.bias = bias
-        self.scale = scale
-
         logger.info('---------------------------------------')
         logger.info('dim: %f', self.dim)
         logger.info('ratio: %f', self.ratio)
@@ -40,6 +37,13 @@ class ResNetZ(nn.Module):
         logger.info('num_filters: %f', self.num_filters)
         logger.info('normalizor: %s', normalizor)
         logger.info('---------------------------------------')
+
+        if dim == 1:
+            self.bn = nn.BatchNorm1d(self.num_filters, affine=True)
+        elif dim == 2:
+            self.bn = nn.BatchNorm2d(self.num_filters, affine=True)
+        elif dim == 3:
+            self.bn = nn.BatchNorm3d(self.num_filters, affine=True)
 
         if conv_class is None:
             self.conv_class = self.get_conv_class()
@@ -52,25 +56,27 @@ class ResNetZ(nn.Module):
 
         if normalizor == 'relu6':
             self.normalizor = nn.ReLU6()
-            self.scale = 6.0
-            self.mean = 0.0
+            self.scale = 1.0 / 6.0
+            self.bias = 0.0
         elif normalizor == 'sigmoid':
             self.normalizor = nn.Sigmoid()
             self.scale = 1.0
-            self.mean = 0.0
+            self.bias = 0.0
         elif normalizor == 'tanh':
             self.normalizor = nn.Tanh()
             self.scale = 1.0
-            self.mean = 0.0
+            self.bias = 0.0
         elif normalizor == 'softmax':
             self.normalizor = nn.Softmax()
             self.scale = 1.0
-            self.mean = 0.0
+            self.bias = 0.0
         else:
             self.normalizor = None
+            self.scale = 1.0
+            self.bias = 0.0
 
         self.iconv = self.conv_class(self.in_channels, self.num_filters, kernel_size=7, padding=3, groups=1)
-        self.oconv = self.conv_class(self.num_filters, self.out_channels, kernel_size=3, padding=1, groups=1)
+        self.oconv = self.conv_class(self.num_filters, self.out_channels, kernel_size=3, padding=1, groups=1, bias=False)
 
         step_length = 1.0 / self.layers
         self.order1 = Bottleneck(self.num_filters, 2 * self.num_filters, step_length, self.relu, self.conv_class, reduction=16)
@@ -89,7 +95,7 @@ class ResNetZ(nn.Module):
         return conv
 
     def forward(self, x):
-        x0 = self.iconv((x - self.bias) / self.scale)
+        x0 = self.bn(self.iconv(x))
 
         rslt = self.order1(x0)
         velo = rslt[:, :self.num_filters]
