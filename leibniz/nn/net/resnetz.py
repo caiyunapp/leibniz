@@ -82,6 +82,8 @@ class ResNetZ(nn.Module):
         self.order1 = Bottleneck(self.num_filters, 2 * self.num_filters, step_length, self.relu, self.conv_class, reduction=16)
         self.order2 = Bottleneck(4 * self.num_filters + 1, 2 * self.num_filters, step_length, self.relu, self.conv_class, reduction=16)
         self.order3 = Bottleneck(7 * self.num_filters + 1, 2 * self.num_filters, step_length, self.relu, self.conv_class, reduction=16)
+        self.order4 = Bottleneck(10 * self.num_filters + 1, 2 * self.num_filters, step_length, self.relu, self.conv_class, reduction=16)
+        self.order5 = Bottleneck(13 * self.num_filters + 1, 2 * self.num_filters, step_length, self.relu, self.conv_class, reduction=16)
 
     def get_conv_class(self):
         if self.dim == 1:
@@ -96,7 +98,6 @@ class ResNetZ(nn.Module):
 
     def forward(self, x):
         x0 = self.bn(self.iconv(x))
-
         rslt = self.order1(x0)
         velo = rslt[:, :self.num_filters]
         theta = rslt[:, self.num_filters:]
@@ -118,7 +119,19 @@ class ResNetZ(nn.Module):
 
             x3 = x2 * (1 + dv2 / self.layers) + du2 / self.layers
 
-        out = self.oconv(x3)
+            dd = self.order4(th.cat([x0, x1, x2, x3, du0, dv0, du1, dv1, du2, dv2, th.ones_like(x1[:, 0:1]) * _ / self.layers], dim=1))
+            du3 = dd[:, self.num_filters * 0:self.num_filters * 1]
+            dv3 = dd[:, self.num_filters * 1:self.num_filters * 2]
+
+            x4 = x3 * (1 + dv3 / self.layers) + du3 / self.layers
+
+            dd = self.order5(th.cat([x0, x1, x2, x3, x4, du0, dv0, du1, dv1, du2, dv2, du3, dv3, th.ones_like(x1[:, 0:1]) * _ / self.layers], dim=1))
+            du4 = dd[:, self.num_filters * 0:self.num_filters * 1]
+            dv4 = dd[:, self.num_filters * 1:self.num_filters * 2]
+
+            x5 = x4 * (1 + dv4 / self.layers) + du4 / self.layers
+
+        out = self.oconv(x5)
         if self.normalizor:
             return self.normalizor(out) * self.scale + self.bias
         else:
