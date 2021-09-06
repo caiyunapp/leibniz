@@ -7,6 +7,7 @@ from leibniz.nn.net.unet import UNet
 from leibniz.nn.net.unet2 import UNet2
 from leibniz.nn.net.unet3 import UNet3
 from leibniz.nn.net.resnet import ResNet
+from leibniz.nn.net.resnetz import ResNetZ
 from leibniz.nn.net.hyptube import HypTube, StepwiseHypTube, LeveledHypTube
 from leibniz.nn.net.conv_lstm import ConvLSTM
 from leibniz.nn.net.simple import Linear, Identity, SimpleCNN2d
@@ -68,6 +69,10 @@ def resnet(in_channels, out_channels, block=Basic, relu=Swish(), attn=None, laye
                  vblks=[1, 1, 1, 1], factors=[1, 1, 1, 1], spatial=(256, 256), normalizor='batch'):
     return ResNet(in_channels, out_channels, block=block, relu=relu, attn=attn, layers=layers, ratio=ratio, dropout_prob=dropout_prob,
                  vblks=vblks, factors=factors, spatial=spatial, normalizor=normalizor)
+
+
+def resnetz(in_channels, out_channels, relu=Swish(), layers=4, ratio=0, spatial=(256, 256), normalizor=None):
+    return ResNetZ(in_channels, out_channels, relu=relu, layers=layers, ratio=ratio, spatial=spatial, normalizor=normalizor)
 
 
 def hyptub(in_channels, hidden_channels, out_channels, encoder=resunet, decoder=resunet, **kwargs):
