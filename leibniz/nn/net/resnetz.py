@@ -96,27 +96,31 @@ class ResNetZ(nn.Module):
 
     def forward(self, x):
         x0 = self.bn(self.iconv(x))
+        rslt = self.order1(x0)
+        velo = rslt[:, :self.num_filters]
+        theta = rslt[:, self.num_filters:]
+        du0 = velo * th.cos(theta)
+        dv0 = velo * th.sin(theta)
+
         for _ in range(self.layers):
-            rslt = self.order1(x0)
-            velo = rslt[:, :self.num_filters]
-            theta = rslt[:, self.num_filters:]
-            du0 = velo * th.cos(theta)
-            dv0 = velo * th.sin(theta)
             x1 = x0 * (1 + dv0 / self.layers) + du0 / self.layers
+            x1 = self.relu(x1)
 
             dd = self.order2(th.cat([x0, x1, du0, dv0, th.ones_like(x0[:, 0:1]) * _ / self.layers], dim=1))
             du1 = dd[:, self.num_filters * 0:self.num_filters * 1]
             dv1 = dd[:, self.num_filters * 1:self.num_filters * 2]
 
             x2 = x1 * (1 + dv1 / self.layers) + du1 / self.layers
+            x2 = self.relu(x2)
 
             dd = self.order3(th.cat([x0, x1, x2, du0, dv0, du1, dv1, th.ones_like(x1[:, 0:1]) * _ / self.layers], dim=1))
             du2 = dd[:, self.num_filters * 0:self.num_filters * 1]
             dv2 = dd[:, self.num_filters * 1:self.num_filters * 2]
 
-            x0 = x2 * (1 + dv2 / self.layers) + du2 / self.layers
+            x3 = x2 * (1 + dv2 / self.layers) + du2 / self.layers
+            x3 = self.relu(x3)
 
-        out = self.oconv(x0)
+        out = self.oconv(x3)
         if self.normalizor:
             return self.normalizor(out) * self.scale + self.bias
         else:

@@ -79,6 +79,7 @@ class Transform(nn.Module):
 
         self.nblks = nblks
         self.num_filters = num_filters
+        self.relu = relu
 
         step_length = 1.0 / self.nblks
         self.order1 = Bottleneck(num_filters, 2 * num_filters, step_length, relu, conv, reduction=16)
@@ -94,18 +95,21 @@ class Transform(nn.Module):
 
         for _ in range(self.nblks):
             x1 = x0 * (1 + dv0 / self.nblks) + du0 / self.nblks
+            x1 = self.relu(x1)
 
             dd = self.order2(th.cat([x0, x1, du0, dv0, th.ones_like(x0[:, 0:1]) * _ / self.nblks], dim=1))
             du1 = dd[:, self.num_filters * 0:self.num_filters * 1]
             dv1 = dd[:, self.num_filters * 1:self.num_filters * 2]
 
             x2 = x1 * (1 + dv1 / self.nblks) + du1 / self.nblks
+            x2 = self.relu(x2)
 
             dd = self.order3(th.cat([x0, x1, x2, du0, dv0, du1, dv1, th.ones_like(x1[:, 0:1]) * _ / self.nblks], dim=1))
             du2 = dd[:, self.num_filters * 0:self.num_filters * 1]
             dv2 = dd[:, self.num_filters * 1:self.num_filters * 2]
 
             x3 = x2 * (1 + dv2 / self.nblks) + du2 / self.nblks
+            x3 = self.relu(x3)
 
         return x3, x3
 
