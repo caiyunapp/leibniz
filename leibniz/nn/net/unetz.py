@@ -305,6 +305,7 @@ class UNetZ(nn.Module):
             hzt = hzts[ix]
             upt, dec = self.upforms[ix](self.deconvs[ix](upt, hzt))
 
+        upt = self.oconv(upt)
         if self.normalizor:
             return self.normalizor(upt) * self.scale + self.bias
         else:
