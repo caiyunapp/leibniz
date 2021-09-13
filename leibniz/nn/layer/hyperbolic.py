@@ -74,7 +74,7 @@ class HyperBasic(nn.Module):
         y4 = x * (1 - u * self.step) + v * self.step
         ys = th.cat([y1, y2, y3, y4, x, velo, theta], dim=1)
 
-        return x + self.output(ys) * self.step
+        return x * (1 + self.output(ys) * self.step)
 
 
 class HyperBottleneck(nn.Module):
@@ -104,4 +104,4 @@ class HyperBottleneck(nn.Module):
         y4 = x * (1 - u * self.step) + v * self.step
         ys = th.cat([y1, y2, y3, y4, x, velo, theta], dim=1)
 
-        return x + self.output(ys) * self.step
+        return x * (1 + self.output(ys) * self.step)
