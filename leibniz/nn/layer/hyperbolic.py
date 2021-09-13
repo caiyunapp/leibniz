@@ -4,6 +4,7 @@ import torch as th
 import torch.nn as nn
 
 from leibniz.nn.layer.simam import SimAM
+from leibniz.nn.layer.cbam import CBAM
 
 
 class BasicBlock(nn.Module):
@@ -72,9 +73,8 @@ class HyperBasic(nn.Module):
         y3 = x * (1 - v * self.step) - u * self.step
         y4 = x * (1 - u * self.step) + v * self.step
         ys = th.cat([y1, y2, y3, y4, x, velo, theta], dim=1)
-        r = self.output(ys) * self.step
 
-        return y1 * (1 + r)
+        return x + self.output(ys) * self.step
 
 
 class HyperBottleneck(nn.Module):
@@ -103,6 +103,5 @@ class HyperBottleneck(nn.Module):
         y3 = x * (1 - v * self.step) - u * self.step
         y4 = x * (1 - u * self.step) + v * self.step
         ys = th.cat([y1, y2, y3, y4, x, velo, theta], dim=1)
-        r = self.output(ys) * self.step
 
-        return y1 * (1 + r)
+        return x + self.output(ys) * self.step
